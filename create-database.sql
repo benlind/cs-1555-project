@@ -12,7 +12,7 @@
 
     
 -- Remove previous tables
-DROP TABLE Friendship;
+DROP TABLE Friendships;
 DROP TABLE Users;
 
     
@@ -20,23 +20,24 @@ DROP TABLE Users;
 -- This section of code was written by: Benjamin Lind (bdl22)
 
 CREATE TABLE Users (
-    user_id NUMBER(10) PRIMARY KEY,
-    fname VARCHAR(64),  -- max 64 chars
-    lname VARCHAR(64),  -- max 64 chars
-    email VARCHAR(254), -- max 254 chars
+    user_id NUMBER(10),
+    fname VARCHAR(64) NOT NULL,  -- max 64 chars
+    lname VARCHAR(64) NOT NULL,  -- max 64 chars
+    email VARCHAR(254) NOT NULL, -- max 254 chars
     dob DATE,
-    last_login TIMESTAMP
+    last_login TIMESTAMP,
+    CONSTRAINT Users_PK PRIMARY KEY (user_id)
 );
 
-CREATE TABLE Friendship (
+CREATE TABLE Friendships (
     friendship_id NUMBER(10),
-    friend_initiator NUMBER(10),
-    friend_receiver NUMBER(10),
-    established NUMBER(1),
+    friend_initiator NUMBER(10) NOT NULL,
+    friend_receiver NUMBER(10) NOT NULL,
+    established NUMBER(1) NOT NULL,
     date_established TIMESTAMP,
-    CONSTRAINT Friendship_PK PRIMARY KEY (friendship_id),
-    CONSTRAINT Friendship_FK_Friend_Initiator FOREIGN KEY (friend_initiator)
+    CONSTRAINT Friendships_PK PRIMARY KEY (friendship_id),
+    CONSTRAINT Friendships_FK_Initiator FOREIGN KEY (friend_initiator)
         REFERENCES Users (user_id),
-    CONSTRAINT Friendship_FK_Friend_Receiver FOREIGN KEY (friend_receiver)
+    CONSTRAINT Friendships_FK_Receiver FOREIGN KEY (friend_receiver)
         REFERENCES Users (user_id)
 );
