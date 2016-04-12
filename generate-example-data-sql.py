@@ -40,13 +40,22 @@ def random_user_sql(num_to_generate):
                                                    '%Y-%m-%d %H:%M:%S')
     login_range_end   = datetime.datetime.strptime('2016-04-01 00:00:00',
                                                    '%Y-%m-%d %H:%M:%S')
+    emails = []
 
     for i in range(0, num_to_generate):
         fname = random.choice(first_names_pool)
         lname = random.choice(last_names_pool)
         dob = random_date_between(dob_range_start, dob_range_end, True)
         login = random_date_between(login_range_start, login_range_end, False)
-        email = fname.lower() + lname.lower() + "@test-domain.com";
+
+        found_email = False
+        email_num = 2
+        email = fname.lower() + lname.lower() + "@test-domain.com"
+        while email in emails:
+            email = fname.lower() + lname.lower() + str(email_num) + "@test-domain.com"
+            email_num += 1
+        emails.append(email)
+
         sql.append("INSERT INTO Users (user_id, fname, lname, email, dob, last_login) "
                    "VALUES (%d, '%s', '%s', '%s', TO_DATE('%s', 'YYYY-MM-DD'), "
                    "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'));"

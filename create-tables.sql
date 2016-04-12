@@ -26,7 +26,8 @@ CREATE TABLE Users (
     email VARCHAR(254) NOT NULL, -- max 254 chars
     dob DATE,
     last_login TIMESTAMP,
-    CONSTRAINT Users_PK PRIMARY KEY (user_id)
+    CONSTRAINT Users_PK PRIMARY KEY (user_id),
+    CONSTRAINT Email_Unique UNIQUE (email)
 );
 
 CREATE TABLE Friendships (
