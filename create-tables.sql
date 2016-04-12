@@ -1,13 +1,15 @@
 ------------------------------------------------------------------------------
+-- Class: CS 1555 Database Management Systems
+-- Instructor: Prof. Mohamed Sharaf
+-- Contributors:
+--   - Benjamin Lind (bdl22)
+--   - Autumn Good (alg161)
+--   - Fadi Alchoufete (fba4)
+--
 -- create-tables.sql creates the database tables necessary for the FaceSpace
 -- system. It creates users, friendships, groups, and messages.
 --
 -- Note: this script will drop all relevant tables before recreating them.
---
--- Contributors:
---     - Benjamin Lind (bdl22)
---     - Autumn Good (alg161)
---     - Fadi Alchoufete (fba4)
 ------------------------------------------------------------------------------
 
     
