@@ -16,8 +16,6 @@
 -- Remove previous tables
 DROP TABLE Friendship;
 DROP TABLE FS_User;
-DROP TABLE Friendships;
-DROP TABLE Users;
 -- DROP TABLE Group;
 -- DROP TABLE Group_Membership;
 DROP TABLE Message;
@@ -89,7 +87,7 @@ CREATE TABLE Message (
     date_sent TIMESTAMP,
     CONSTRAINT Message_PK PRIMARY KEY (message_id),
     CONSTRAINT Message_FK_recipient FOREIGN KEY (recipient)
-        REFERENCES Users (user_id),
+        REFERENCES FS_User (user_id),
     CONSTRAINT Message_FK_sender FOREIGN KEY (sender)
-        REFERENCES Users (user_id)
+        REFERENCES FS_User (user_id)
 );
