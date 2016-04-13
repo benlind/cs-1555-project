@@ -16,16 +16,18 @@
 
 -- Remove previous tables
 DROP TABLE Friendship;
-DROP TABLE FS_User;
-DROP TABLE Groups;
 DROP TABLE Group_Members;
+DROP TABLE Groups;
 DROP TABLE Message;
+DROP TABLE FS_User;
 
 
 
 ------------------------------------------------------------------------------
 -- This section of code was written by: Benjamin Lind (bdl22)
 
+PROMPT ----- CREATING FS_USER -----
+    
 CREATE TABLE FS_User (
     user_id NUMBER(10),
     name VARCHAR(128) NOT NULL,  -- max 128 chars
@@ -46,6 +48,8 @@ BEGIN
     SELECT user_seq.nextval INTO :new.user_id FROM dual;
 END;
 /
+
+PROMPT ----- CREATING FRIENDSHIP -----
 
 CREATE TABLE Friendship (
     friendship_id NUMBER(10),
@@ -94,19 +98,25 @@ BEGIN
 END;
 /
 
+
+    
 ------------------------------------------------------------------------------
 -- This section of the code was written by: Autumn Good (alg161)
+
+PROMPT ----- CREATING GROUP -----
 
 CREATE TABLE Groups (
 	group_id NUMBER(10),
 	group_name VARCHAR(64) NOT NULL,
 	group_description VARCHAR(160),
-	group_enroll_limit NUMBER(6) ,
---	group_enrollment NUMBER (6),
-	CONSTRAINT group_PK PRIMARY KEY (group_id),
+	group_enroll_limit NUMBER(6),
+	CONSTRAINT group_PK PRIMARY KEY (group_id)
+--  group_enrollment NUMBER (6),
 --	CONSTRAINT within_enrollment_limit
 --		CHECK (group_enrollment <= group_enroll_limit)
 );
+
+PROMPT ----- CREATING GROUP_MEMBER -----
 
 CREATE TABLE Group_Members (
 	group_id NUMBER(10),
@@ -146,8 +156,11 @@ CREATE TABLE Group_Members (
 --	/
 
 
+    
 ------------------------------------------------------------------------------
 -- This section of the code was written by: Fadi Alchoufete (fba4)
+
+PROMPT ----- CREATING MESSAGE -----
 
 CREATE TABLE Message (
     message_id NUMBER(10),
