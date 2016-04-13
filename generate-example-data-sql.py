@@ -56,7 +56,7 @@ def random_user_sql(num_to_generate):
             email_num += 1
         emails.append(email)
 
-        sql.append("INSERT INTO Users (name, email, dob, last_login) "
+        sql.append("INSERT INTO FS_User (name, email, dob, last_login) "
                    "VALUES ('%s', '%s', TO_DATE('%s', 'YYYY-MM-DD'), "
                    "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'));"
                    % (fname + " " + lname, email, dob, login))
@@ -94,7 +94,7 @@ def random_friendship_sql(num_to_generate, num_users):
                 friendships[friend_initiator][friend_receiver] = True
                 friendships[friend_receiver][friend_initiator] = True
             
-        sql.append("INSERT INTO Friendships (friend_initiator, "
+        sql.append("INSERT INTO Friendship (friend_initiator, "
                    "friend_receiver, established, date_established) "
                    "VALUES (%d, %d, %d, %s);"
                    % (friend_initiator, friend_receiver, established, est_date))
