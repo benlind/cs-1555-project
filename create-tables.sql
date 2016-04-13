@@ -16,8 +16,8 @@
 
 -- Remove previous tables
 DROP TABLE Friendship;
-DROP TABLE Group_Members;
-DROP TABLE Groups;
+DROP TABLE Group_Member;
+DROP TABLE User_Group;
 DROP TABLE Message;
 DROP TABLE FS_User;
 
@@ -105,7 +105,7 @@ END;
 
 PROMPT ----- CREATING GROUP -----
 
-CREATE TABLE Groups (
+CREATE TABLE User_Group (
 	group_id NUMBER(10),
 	group_name VARCHAR(64) NOT NULL,
 	group_description VARCHAR(160),
@@ -118,14 +118,14 @@ CREATE TABLE Groups (
 
 PROMPT ----- CREATING GROUP_MEMBER -----
 
-CREATE TABLE Group_Members (
+CREATE TABLE Group_Member (
 	group_id NUMBER(10),
 	user_id NUMBER(10),
 	CONSTRAINT group_members_pk PRIMARY KEY (group_id, user_id),
 	CONSTRAINT group_id_fk FOREIGN KEY (group_id)
-		REFERENCES Groups(group_id),
+		REFERENCES User_Group (group_id),
 	CONSTRAINT user_id_fk FOREIGN KEY (user_id)
-		REFERENCES FS_User(user_id)
+		REFERENCES FS_User (user_id)
 );
 
 --Updates the enrollment value in the group tables, where a check is enforced
@@ -165,7 +165,7 @@ PROMPT ----- CREATING MESSAGE -----
 CREATE TABLE Message (
     message_id NUMBER(10),
     subject VARCHAR(254),
-    body TEXT,
+    body VARCHAR(100),
     recipient NUMBER(10) NOT NULL,
     sender NUMBER(10) NOT NULL,
     date_sent TIMESTAMP,
