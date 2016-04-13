@@ -14,6 +14,9 @@ def main():
     friendship_sql = random_friendship_sql(200, num_users)
     sql += friendship_sql
 
+    message_sql = random_message_sql(100, num_users)
+    sql += message_sql
+
     final_sql = "\n".join(sql)
 
     sql_file = open('add-test-data.sql', 'w')
@@ -40,17 +43,26 @@ def random_user_sql(num_to_generate):
                                                    '%Y-%m-%d %H:%M:%S')
     login_range_end   = datetime.datetime.strptime('2016-04-01 00:00:00',
                                                    '%Y-%m-%d %H:%M:%S')
+    emails = []
 
     for i in range(0, num_to_generate):
         fname = random.choice(first_names_pool)
         lname = random.choice(last_names_pool)
         dob = random_date_between(dob_range_start, dob_range_end, True)
         login = random_date_between(login_range_start, login_range_end, False)
-        email = fname.lower() + lname.lower() + "@test-domain.com";
-        sql.append("INSERT INTO Users (user_id, fname, lname, email, dob, last_login) "
-                   "VALUES (%d, '%s', '%s', '%s', TO_DATE('%s', 'YYYY-MM-DD'), "
+
+        found_email = False
+        email_num = 2
+        email = fname.lower() + lname.lower() + "@test-domain.com"
+        while email in emails:
+            email = fname.lower() + lname.lower() + str(email_num) + "@test-domain.com"
+            email_num += 1
+        emails.append(email)
+
+        sql.append("INSERT INTO Users (name, email, dob, last_login) "
+                   "VALUES ('%s', '%s', TO_DATE('%s', 'YYYY-MM-DD'), "
                    "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'));"
-                   % (i, fname, lname, email, dob, login))
+                   % (fname + " " + lname, email, dob, login))
 
     sql.append("")
     return sql
@@ -85,12 +97,64 @@ def random_friendship_sql(num_to_generate, num_users):
                 friendships[friend_initiator][friend_receiver] = True
                 friendships[friend_receiver][friend_initiator] = True
             
-        sql.append("INSERT INTO Friendships (friendship_id, friend_initiator, "
+        sql.append("INSERT INTO Friendships (friend_initiator, "
                    "friend_receiver, established, date_established) "
-                   "VALUES (%d, %d, %d, %d, %s);"
-                   % (i, friend_initiator, friend_receiver, established, est_date))
+                   "VALUES (%d, %d, %d, %s);"
+                   % (friend_initiator, friend_receiver, established, est_date))
 
     sql.append("")
+    return sql
+
+def random_message_sql(num_to_generate, num_users):
+    subject_pool = [
+        "Lunch", "Dinner", "Summer Vacation", "Sushi", "Funny Video", "Lottery", "What Stacy Said", "SNL"
+    ]
+
+    message_string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." \
+        "Duis turpis lectus, luctus sodales pretium sit amet, malesuada eget diam." \
+        "Donec congue purus facilisis posuere rutrum. Vivamus condimentum lacus" \
+        "vitae nisi molestie vestibulum. Curabitur nec libero eu ipsum sollicitudin" \
+        "consequat id id risus. Nulla facilisi. Sed iaculis, risus a volutpat" \
+        "rutrum, urna eros sagittis metus, ac fringilla nunc metus non dolor. Sed" \
+        "cursus tortor et rhoncus scelerisque. Ut imperdiet rutrum magna, a" \
+        "pellentesque odio consequat eget. Aliquam varius, nibh eget maximus" \
+        "placerat, quam eros congue lectus, eget fringilla lorem enim in erat." \
+        "Maecenas id turpis felis. Nulla ipsum odio, vulputate at cursus venenatis," \
+        "pretium non tellus. Fusce ac magna vulputate, varius nisi eget, dapibus" \
+        "mauris. Vestibulum sed dolor sit amet eros tempor vehicula. Sed placerat" \
+        "eleifend nisi vel viverra. Aenean tristique iaculis nisl. Sed fermentum" \
+        "turpis a tincidunt posuere."
+
+    message_spaces = [i for i, letter in enumerate(message_string) if letter == ' ']
+
+    message_date_range_start = datetime.datetime.strptime('2015-01-01 00:00:00',
+                                                 '%Y-%m-%d %H:%M:%S')
+    message_date_range_end   = datetime.datetime.strptime('2016-04-01 00:00:00',
+                                                 '%Y-%m-%d %H:%M:%S')
+
+    sql = ['--------------------------------------------',
+           '----------- GENERATING MESSAGES ------------',
+           '--------------------------------------------']
+
+    for i in range(0, num_to_generate):
+        message_date_raw = random_date_between(message_date_range_start, message_date_range_end, False)
+        message_date_sent = "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS')" % message_date_raw
+
+        message_sender = random.choice(range(0, num_users))
+        message_recipient = message_sender
+        while message_sender == message_recipient:
+            message_recipient = random.choice(range(0, num_users))
+
+        message_subject = random.choice(subject_pool)
+
+        message_body_start = random.choice(message_spaces)
+        message_body = message_string[(message_body_start+1):]
+        message_body = message_body.capitalize()
+
+        sql.append("INSERT INTO Message (subject, body, recipient, sender, date_sent) "
+                   "VALUES ('%s', '%s', %d, %d, %s);"
+                   % (message_subject, message_body, message_recipient, message_sender, message_date_sent))
+
     return sql
 
 def random_date_between(start, end, date_only):

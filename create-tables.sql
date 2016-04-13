@@ -1,49 +1,78 @@
 ------------------------------------------------------------------------------
+-- Class: CS 1555 Database Management Systems
+-- Instructor: Prof. Mohamed Sharaf
+-- Contributors:
+--   - Benjamin Lind (bdl22)
+--   - Autumn Good (alg161)
+--   - Fadi Alchoufete (fba4)
+--
 -- create-tables.sql creates the database tables necessary for the FaceSpace
 -- system. It creates users, friendships, groups, and messages.
 --
 -- Note: this script will drop all relevant tables before recreating them.
---
--- Contributors:
---     - Benjamin Lind (bdl22)
---     - Autumn Good (alg161)
---     - Fadi Alchoufete (fba4)
 ------------------------------------------------------------------------------
 
-  
+
+
 -- Remove previous tables
-DROP TABLE Friendships;
-DROP TABLE Group_Members;
-DROP TABLE Users;
+DROP TABLE Friendship;
+DROP TABLE FS_User;
 DROP TABLE Groups;
+DROP TABLE Group_Members;
+DROP TABLE Message;
 
 
-    
+
 ------------------------------------------------------------------------------
 -- This section of code was written by: Benjamin Lind (bdl22)
 
-CREATE TABLE Users (
+CREATE TABLE FS_User (
     user_id NUMBER(10),
-    fname VARCHAR(64) NOT NULL,  -- max 64 chars
-    lname VARCHAR(64) NOT NULL,  -- max 64 chars
+    name VARCHAR(128) NOT NULL,  -- max 128 chars
     email VARCHAR(254) NOT NULL, -- max 254 chars
     dob DATE,
     last_login TIMESTAMP,
-    CONSTRAINT Users_PK PRIMARY KEY (user_id)
+    CONSTRAINT User_PK PRIMARY KEY (user_id),
+    CONSTRAINT Email_Unique UNIQUE (email)
 );
 
-CREATE TABLE Friendships (
+-- Set up auto-incrementing for user ids
+DROP SEQUENCE user_seq;
+CREATE SEQUENCE user_seq;
+CREATE OR REPLACE TRIGGER user_auto_increment
+BEFORE INSERT ON FS_User
+FOR EACH ROW
+BEGIN
+    SELECT user_seq.nextval INTO :new.user_id FROM dual;
+END;
+/
+
+CREATE TABLE Friendship (
     friendship_id NUMBER(10),
     friend_initiator NUMBER(10) NOT NULL,
     friend_receiver NUMBER(10) NOT NULL,
     established NUMBER(1) NOT NULL,
     date_established TIMESTAMP,
-    CONSTRAINT Friendships_PK PRIMARY KEY (friendship_id),
-    CONSTRAINT Friendships_FK_Initiator FOREIGN KEY (friend_initiator)
-        REFERENCES Users (user_id),
-    CONSTRAINT Friendships_FK_Receiver FOREIGN KEY (friend_receiver)
-        REFERENCES Users (user_id)
+    CONSTRAINT Friendship_PK PRIMARY KEY (friendship_id),
+    CONSTRAINT Friendship_FK_Initiator FOREIGN KEY (friend_initiator)
+        REFERENCES FS_User (user_id),
+    CONSTRAINT Friendship_FK_Receiver FOREIGN KEY (friend_receiver)
+        REFERENCES FS_User (user_id)
 );
+
+-- Set up auto-incrementing for friendship ids
+DROP SEQUENCE friendship_seq;
+CREATE SEQUENCE friendship_seq;
+CREATE OR REPLACE TRIGGER friendship_auto_increment
+BEFORE INSERT ON Friendship
+FOR EACH ROW
+BEGIN
+    SELECT friendship_seq.nextval INTO :new.friendship_id FROM dual;
+END;
+/
+
+------------------------------------------------------------------------------
+-- This section of the code was written by: Autumn Good (alg161)
 
 CREATE TABLE Groups (
 	group_id NUMBER(10),
@@ -63,7 +92,7 @@ CREATE TABLE Group_Members (
 	CONSTRAINT group_id_fk FOREIGN KEY (group_id)
 		REFERENCES Groups(group_id),
 	CONSTRAINT user_id_fk FOREIGN KEY (user_id)
-		REFERENCES Users(user_id)
+		REFERENCES FS_User(user_id)
 );
 
 --Updates the enrollment value in the group tables, where a check is enforced
@@ -93,4 +122,33 @@ CREATE TABLE Group_Members (
 --	END;
 --	/
 
+
+------------------------------------------------------------------------------
+-- This section of the code was written by: Fadi Alchoufete (fba4)
+
+CREATE TABLE Message (
+    message_id NUMBER(10),
+    subject VARCHAR(254),
+    body TEXT,
+    recipient NUMBER(10) NOT NULL,
+    sender NUMBER(10) NOT NULL,
+    date_sent TIMESTAMP,
+    CONSTRAINT Message_PK PRIMARY KEY (message_id),
+    CONSTRAINT Message_FK_recipient FOREIGN KEY (recipient)
+        REFERENCES FS_User (user_id),
+    CONSTRAINT Message_FK_sender FOREIGN KEY (sender)
+        REFERENCES FS_User (user_id)
+);
+
+
+-- Set up auto-incrementing for message IDs
+DROP SEQUENCE message_seq;
+CREATE SEQUENCE message_seq;
+CREATE OR REPLACE TRIGGER message_auto_increment
+BEFORE INSERT ON Message
+FOR EACH ROW
+BEGIN
+    SELECT message_seq.nextval INTO :new.message_id FROM dual;
+END;
+/
 
