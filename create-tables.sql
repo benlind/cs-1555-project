@@ -12,12 +12,12 @@
 -- Note: this script will drop all relevant tables before recreating them.
 ------------------------------------------------------------------------------
 
-    
+
 -- Remove previous tables
 DROP TABLE Friendship;
 DROP TABLE FS_User;
 
-
+    
 ------------------------------------------------------------------------------
 -- This section of code was written by: Benjamin Lind (bdl22)
 
@@ -54,3 +54,14 @@ CREATE TABLE Friendship (
     CONSTRAINT Friendship_FK_Receiver FOREIGN KEY (friend_receiver)
         REFERENCES FS_User (user_id)
 );
+
+-- Set up auto-incrementing for friendship ids
+DROP SEQUENCE friendship_seq;
+CREATE SEQUENCE friendship_seq;
+CREATE OR REPLACE TRIGGER friendship_auto_increment
+BEFORE INSERT ON Friendship
+FOR EACH ROW
+BEGIN
+    SELECT friendship_seq.nextval INTO :new.friendship_id FROM dual;
+END;
+/

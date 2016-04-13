@@ -56,10 +56,10 @@ def random_user_sql(num_to_generate):
             email_num += 1
         emails.append(email)
 
-        sql.append("INSERT INTO Users (user_id, name, email, dob, last_login) "
-                   "VALUES (%d, '%s', '%s', TO_DATE('%s', 'YYYY-MM-DD'), "
+        sql.append("INSERT INTO Users (name, email, dob, last_login) "
+                   "VALUES ('%s', '%s', TO_DATE('%s', 'YYYY-MM-DD'), "
                    "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'));"
-                   % (i, fname + " " + lname, email, dob, login))
+                   % (fname + " " + lname, email, dob, login))
 
     sql.append("")
     return sql
@@ -94,10 +94,10 @@ def random_friendship_sql(num_to_generate, num_users):
                 friendships[friend_initiator][friend_receiver] = True
                 friendships[friend_receiver][friend_initiator] = True
             
-        sql.append("INSERT INTO Friendships (friendship_id, friend_initiator, "
+        sql.append("INSERT INTO Friendships (friend_initiator, "
                    "friend_receiver, established, date_established) "
-                   "VALUES (%d, %d, %d, %d, %s);"
-                   % (i, friend_initiator, friend_receiver, established, est_date))
+                   "VALUES (%d, %d, %d, %s);"
+                   % (friend_initiator, friend_receiver, established, est_date))
 
     sql.append("")
     return sql
