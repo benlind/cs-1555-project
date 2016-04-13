@@ -52,7 +52,8 @@ CREATE TABLE Friendship (
     CONSTRAINT Friendship_FK_Initiator FOREIGN KEY (friend_initiator)
         REFERENCES FS_User (user_id),
     CONSTRAINT Friendship_FK_Receiver FOREIGN KEY (friend_receiver)
-        REFERENCES FS_User (user_id)
+        REFERENCES FS_User (user_id),
+    CONSTRAINT Friendship_Unique UNIQUE (friend_initiator, friend_receiver)
 );
 
 -- Set up auto-incrementing for friendship ids
@@ -63,5 +64,27 @@ BEFORE INSERT ON Friendship
 FOR EACH ROW
 BEGIN
     SELECT friendship_seq.nextval INTO :new.friendship_id FROM dual;
+END;
+/
+
+-- Ensure there are no duplicate friendships
+CREATE OR REPLACE TRIGGER friendship_duplicates
+BEFORE INSERT ON Friendship
+FOR EACH ROW
+DECLARE
+    v_cnt NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_cnt
+    FROM (
+        SELECT friendship_id
+        FROM Friendship
+        WHERE friend_initiator = :new.friend_receiver
+            AND friend_receiver = :new.friend_initiator
+    );
+
+    IF v_cnt > 0 THEN
+        raise_application_error(-20001, 'A friendship between those ids already exists.');
+    END IF;
 END;
 /
