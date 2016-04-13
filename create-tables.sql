@@ -23,8 +23,7 @@ DROP TABLE Users;
 
 CREATE TABLE Users (
     user_id NUMBER(10),
-    fname VARCHAR(64) NOT NULL,  -- max 64 chars
-    lname VARCHAR(64) NOT NULL,  -- max 64 chars
+    name VARCHAR(128) NOT NULL,  -- max 128 chars
     email VARCHAR(254) NOT NULL, -- max 254 chars
     dob DATE,
     last_login TIMESTAMP,
