@@ -151,9 +151,9 @@ def random_message_sql(num_to_generate, num_users):
         message_body = message_string[(message_body_start+1):]
         message_body = message_body.capitalize()
 
-        sql.append("INSERT INTO Message (message_id, subject, body, recipient, sender, date_sent) "
-                   "VALUES (%d, '%s', '%s', %d, %d, %s);"
-                   % (i, message_subject, message_body, message_recipient, message_sender, message_date_sent))
+        sql.append("INSERT INTO Message (subject, body, recipient, sender, date_sent) "
+                   "VALUES ('%s', '%s', %d, %d, %s);"
+                   % (message_subject, message_body, message_recipient, message_sender, message_date_sent))
 
     return sql
 

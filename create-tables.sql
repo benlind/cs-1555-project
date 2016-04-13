@@ -91,3 +91,14 @@ CREATE TABLE Message (
     CONSTRAINT Message_FK_sender FOREIGN KEY (sender)
         REFERENCES FS_User (user_id)
 );
+
+-- Set up auto-incrementing for message IDs
+DROP SEQUENCE message_seq;
+CREATE SEQUENCE message_seq;
+CREATE OR REPLACE TRIGGER message_auto_increment
+BEFORE INSERT ON Message
+FOR EACH ROW
+BEGIN
+    SELECT message_seq.nextval INTO :new.message_id FROM dual;
+END;
+/
