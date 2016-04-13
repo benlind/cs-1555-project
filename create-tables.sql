@@ -16,8 +16,13 @@
 -- Remove previous tables
 DROP TABLE Friendship;
 DROP TABLE FS_User;
+DROP TABLE Friendships;
+DROP TABLE Users;
+-- DROP TABLE Group;
+-- DROP TABLE Group_Membership;
+DROP TABLE Message;
 
-    
+
 ------------------------------------------------------------------------------
 -- This section of code was written by: Benjamin Lind (bdl22)
 
@@ -65,3 +70,26 @@ BEGIN
     SELECT friendship_seq.nextval INTO :new.friendship_id FROM dual;
 END;
 /
+
+
+--
+-- Insert Group & Group_Membership here
+--
+
+
+------------------------------------------------------------------------------
+-- This section of the code was written by: Fadi Alchoufete (fba4)
+
+CREATE TABLE Message (
+    message_id NUMBER(10),
+    subject VARCHAR(254),
+    body TEXT,
+    recipient NUMBER(10) NOT NULL,
+    sender NUMBER(10) NOT NULL,
+    date_sent TIMESTAMP,
+    CONSTRAINT Message_PK PRIMARY KEY (message_id),
+    CONSTRAINT Message_FK_recipient FOREIGN KEY (recipient)
+        REFERENCES Users (user_id),
+    CONSTRAINT Message_FK_sender FOREIGN KEY (sender)
+        REFERENCES Users (user_id)
+);
