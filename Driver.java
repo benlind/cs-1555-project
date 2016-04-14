@@ -69,6 +69,7 @@ public class Driver {
             prep_statement.setDate(3, dob);
 
             prep_statement.executeUpdate();
+            connection.commit();
         }
         catch (SQLException Ex) {
             System.out.println("Error running SQL: " + Ex.toString());
@@ -100,6 +101,7 @@ public class Driver {
             prep_statement.setLong(2, receiver_id);
 
             prep_statement.executeUpdate();
+            connection.commit();
         }
         catch (SQLException Ex) {
             System.out.println("Error running SQL: " + Ex.toString());
@@ -131,6 +133,7 @@ public class Driver {
             query = "UPDATE Friendship SET established = 1 WHERE friendship_id = " + friendship_id;
 
             statement.executeQuery(query);
+            connection.commit();
         }
         catch (SQLException Ex) {
             System.out.println("Error running SQL: " + Ex.toString());
