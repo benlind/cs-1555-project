@@ -77,14 +77,15 @@ END;
 /
 
 -- Ensure there are no duplicate friendships
-CREATE OR REPLACE TRIGGER friendship_duplicates
+-- or people friends with themselves
+CREATE OR REPLACE TRIGGER friendship_checks
 BEFORE INSERT ON Friendship
 FOR EACH ROW
 DECLARE
-    v_cnt NUMBER;
+    already_exists NUMBER;
 BEGIN
     SELECT COUNT(*)
-    INTO v_cnt
+    INTO already_exists
     FROM (
         SELECT friendship_id
         FROM Friendship
@@ -92,8 +93,10 @@ BEGIN
             AND friend_receiver = :new.friend_initiator
     );
 
-    IF v_cnt > 0 THEN
+    IF already_exists > 0 THEN
         raise_application_error(-20001, 'A friendship between those ids already exists.');
+    ELSIF :new.friend_initiator = :new.friend_receiver THEN
+        raise_application_error(-20002, 'A user cannot be friends with themselves.');
     END IF;
 END;
 /

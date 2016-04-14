@@ -9,6 +9,10 @@
  * Driver.java contains functions that interact with the FaceSpace database. It
  * also contains a demo program that demonstrates the use of all of the
  * functions.
+ *
+ * Note on concurrency: this program assumes that only one person will
+ * access the database at a time. There are not protections in place
+ * to ensure concurrent access works correctly.
  ******************************************************************************/
 
 import java.util.Scanner;
@@ -54,8 +58,6 @@ public class Driver {
             return;
         }
         createUser("Another User", "another@user.com", dob);
-
-        System.out.println();
     }
 
     public void createUser(String name, String email, Date dob) {
@@ -130,7 +132,9 @@ public class Driver {
             // Mark friendship as established
             statement = connection.createStatement();
 
-            query = "UPDATE Friendship SET established = 1 WHERE friendship_id = " + friendship_id;
+            query = "UPDATE Friendship SET established = 1, "
+                + "date_established = CURRENT_TIMESTAMP "
+                + "WHERE friendship_id = " + friendship_id;
 
             statement.executeQuery(query);
             connection.commit();
@@ -156,16 +160,51 @@ public class Driver {
         try {
             statement = connection.createStatement();
 
-            query = "SELECT * FROM FS_User";
+            query = "SELECT * FROM FS_User ORDER BY user_id ASC";
 
             result_set = statement.executeQuery(query);
 
             while (result_set.next()) {
-                System.out.println("User id " + result_set.getLong(1) + ": " +
-                                   result_set.getString(2) + ", " +
-                                   result_set.getString(3) + ", " +
-                                   result_set.getDate(4) + ", " +
-                                   result_set.getTimestamp(5));
+                System.out.println("User (user_id, name, email, dob, last_login) = ("
+                                   + result_set.getLong(1) + ", "
+                                   + result_set.getString(2) + ", "
+                                   + result_set.getString(3) + ", "
+                                   + result_set.getDate(4) + ", "
+                                   + result_set.getTimestamp(5) + ")");
+            }
+        }
+        catch (SQLException Ex) {
+            System.out.println("Error running SQL: " + Ex.toString());
+        }
+        finally {
+            try {
+                if (statement != null) statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+            }
+        }        
+
+        System.out.println();
+    }
+
+    public void listFriendships() {
+        System.out.println("LISTING FRIENDSHIPS");
+
+        try {
+            statement = connection.createStatement();
+
+            query = "SELECT * FROM Friendship ORDER BY friendship_id ASC";
+
+            result_set = statement.executeQuery(query);
+
+            while (result_set.next()) {
+                System.out.println("Friendship (id, initiator, receiver, established, date_established) = ("
+                                   + result_set.getLong(1) + ", "
+                                   + result_set.getLong(2) + ", "
+                                   + result_set.getLong(3) + ", "
+                                   + result_set.getLong(4) + ", "
+                                   + result_set.getTimestamp(5) + ")");
             }
         }
         catch (SQLException Ex) {
@@ -285,7 +324,7 @@ public class Driver {
         while (true) {
             System.out.println("Command list:\n "
                 + "\t(q) quit, (d) demo, (1) createUser, (2) initiateFriendship, (3) establishFriendship\n"
-                + "\t(13) listUsers");
+                + "\t(13) listUsers, (14) listFriendships");
             System.out.print("Enter a command: ");
             command = TestDriver.scanner.nextLine().toLowerCase();
 
@@ -299,15 +338,23 @@ public class Driver {
                 System.out.print("Enter a name: ");
                 String name = TestDriver.scanner.nextLine().trim();
                 if (name.isEmpty()) {
-                    System.out.println("You must enter a name.");
-                    break;
+                    System.out.println("\nYou must enter a name.\n");
+                    continue;
+                }
+                else if (name.length() > 128) {
+                    System.out.println("\nName cannot be more than 128 characters.\n");
+                    continue;
                 }
                 
                 System.out.print("Enter an email: ");
                 String email = TestDriver.scanner.nextLine().trim();
                 if (email.isEmpty()) {
-                    System.out.println("You must enter an email.");
-                    break;
+                    System.out.println("\nYou must enter an email.\n");
+                    continue;
+                }
+                else if (email.length() > 254) {
+                    System.out.println("\nEmail cannot be more than 254 characters.\n");
+                    continue;
                 }
                 
                 System.out.print("Enter a dob (format: YYYY-MM-DD): ");
@@ -320,8 +367,8 @@ public class Driver {
                     dob = new Date(df.parse(dob_str).getTime());
                 }
                 catch (ParseException e) {
-                    System.out.println("Invalid date.");
-                    break;
+                    System.out.println("\nInvalid date.\n");
+                    continue;
                 }
 	    
                 System.out.println();
@@ -335,28 +382,32 @@ public class Driver {
                 String initiator_id_str = TestDriver.scanner.nextLine();
                 
                 if (!isInteger(initiator_id_str)) {
-                    System.out.println("Invalid ID (must be an integer)");
-                    break;
+                    System.out.println("\nInvalid ID (must be an integer)\n");
+                    continue;
                 }
                 int initiator_id = Integer.parseInt(initiator_id_str);
                 if (!TestDriver.userExists(initiator_id)) {
-                    System.out.println("User with id " + Integer.toString(initiator_id)
-                                       + " does not exist.");
-                    break;
+                    System.out.println("\nUser with id " + Integer.toString(initiator_id)
+                                       + " does not exist.\n");
+                    continue;
                 }
 
                 System.out.print("Enter the receiver's user ID: ");
                 String receiver_id_str = TestDriver.scanner.nextLine();
 
                 if (!isInteger(receiver_id_str)) {
-                    System.out.println("Invalid ID (must be an integer)");
-                    break;
+                    System.out.println("\nInvalid ID (must be an integer)\n");
+                    continue;
                 }
                 int receiver_id = Integer.parseInt(receiver_id_str);
                 if (!TestDriver.userExists(receiver_id)) {
-                    System.out.println("User with id " + Integer.toString(receiver_id)
-                                       + " does not exist.");
-                    break;
+                    System.out.println("\nUser with id " + Integer.toString(receiver_id)
+                                       + " does not exist.\n");
+                    continue;
+                }
+                if (initiator_id == receiver_id) {
+                    System.out.println("\nA person cannot be friends with themselves.\n");
+                    continue;
                 }
 
                 System.out.println();
@@ -370,8 +421,8 @@ public class Driver {
                 String first_id_str = TestDriver.scanner.nextLine();
                 
                 if (!isInteger(first_id_str)) {
-                    System.out.println("Invalid ID (must be an integer)");
-                    break;
+                    System.out.println("\nInvalid ID (must be an integer)\n");
+                    continue;
                 }
                 int first_id = Integer.parseInt(first_id_str);
 
@@ -379,18 +430,25 @@ public class Driver {
                 String second_id_str = TestDriver.scanner.nextLine();
 
                 if (!isInteger(second_id_str)) {
-                    System.out.println("Invalid ID (must be an integer)");
-                    break;
+                    System.out.println("\nInvalid ID (must be an integer)\n");
+                    continue;
                 }
                 int second_id = Integer.parseInt(second_id_str);
+
+                if (first_id == second_id) {
+                    System.out.println("\nA person cannot be friends with themselves.\n");
+                    continue;
+                }
 
                 System.out.println();
 
                 TestDriver.establishFriendship(first_id, second_id);
             }
             else if (command.equals("listusers") || command.equals("13")) {
-                System.out.println("FUNCTION: listUsers()\n");
                 TestDriver.listUsers();
+            }
+            else if (command.equals("listfriendships") || command.equals("14")) {
+                TestDriver.listFriendships();
             }
             else if (command.equals("demo") || command.equals("d")) {
                 TestDriver.demo();
