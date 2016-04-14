@@ -113,10 +113,8 @@ CREATE TABLE User_Group (
 	group_name VARCHAR(64) NOT NULL,
 	group_description VARCHAR(160),
 	group_enroll_limit NUMBER(6),
+    group_enrollment NUMBER (6),
 	CONSTRAINT group_PK PRIMARY KEY (group_id)
---  group_enrollment NUMBER (6),
---	CONSTRAINT within_enrollment_limit
---		CHECK (group_enrollment <= group_enroll_limit)
 );
 
 PROMPT ----- CREATING GROUP_MEMBER -----
@@ -133,30 +131,37 @@ CREATE TABLE Group_Member (
 
 --Updates the enrollment value in the group tables, where a check is enforced
 --Cannot use NEW for table level triggers
---CREATE OR REPLACE TRIGGER increment_enrollment
---	BEFORE INSERT ON Group_Members
---	REFERENCING NEW AS newRow
---	BEGIN
---		UPDATE Groups SET group_enrollment = group_enrollment + 1 
---		WHERE Groups.group_id = :newRow.group_id;
---	END;
---	/
+CREATE OR REPLACE TRIGGER increment_enrollment
+	BEFORE INSERT ON Group_Members
+	REFERENCING NEW AS newRow
+BEGIN
+	UPDATE User_Group
+    SET group_enrollment = (SELECT COUNT(*)
+            FROM Group_Member
+            WHERE Group_Member.group_id = :newRow.group_id)
+	WHERE User_Group.group_id = :newRow.group_id;
+END;
+/
 	
 --Tries to count the number of records per group_id and compare it to enrollment limit
 -- Group functions not allowed, neither are subqueries
---CREATE OR REPLACE TRIGGER check_enrollment
---	AFTER INSERT ON Group_Members
---	REFERENCING NEW AS newRow
---	FOR EACH ROW
---		WHEN (count(*) > groups.group_enrollment
---					FROM Group_Members 
---					where group_member.group_id = Groups.group_id
---					group by group_members.group_id 	
---				)
---	BEGIN
---		ROLLBACK
---	END;
---	/
+CREATE OR REPLACE TRIGGER check_enrollment
+	BEFORE INSERT ON Group_Members
+	REFERENCING NEW AS newRow
+BEGIN
+    SELECT COUNT(*)
+    INTO g_cnt
+    FROM (
+        SELECT group_id
+        FROM Group_Member
+        WHERE Group_Member.group_id = :new.group_id
+    );
+
+    IF g_cnt > 0 THEN
+	   raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
+    END IF;
+END;
+/
 
 
     
