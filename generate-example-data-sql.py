@@ -6,23 +6,25 @@ import datetime
 def main():
     sql = list()
 
-    num_users = 100  # number of users to generate
-    num_groups = 30 # number of groups to generate
+    num_users       = 100  # number of users to generate
+    num_friendships = 200  # number of groups to generate
+    num_groups      = 10   # number of groups to generate
+    num_messages    = 300  # number of groups to generate
     
     user_sql = random_user_sql(num_users)
     sql += user_sql
 
-    friendship_sql = random_friendship_sql(200, num_users)
+    friendship_sql = random_friendship_sql(num_friendships, num_users)
     sql += friendship_sql
-
-    message_sql = random_message_sql(100, num_users)
-    sql += message_sql
 
     group_sql = random_group_sql(num_groups)
     sql += group_sql
 
     group_member_sql = random_group_membership_sql(100, num_groups, num_users)
     sql += group_member_sql
+
+    message_sql = random_message_sql(num_messages, num_users)
+    sql += message_sql
 
     final_sql = "\n".join(sql)
 
@@ -101,9 +103,10 @@ def random_friendship_sql(num_to_generate, num_users):
         friend_receiver  = None
         found_empty_friendship = False
         while not found_empty_friendship:
-            friend_initiator = random.choice(range(0, num_users))
-            friend_receiver = random.choice(range(0, num_users))
-            if (friendships[friend_initiator][friend_receiver] == False):
+            friend_initiator = random.choice(range(1, num_users))
+            friend_receiver = random.choice(range(1, num_users))
+            if (friend_initiator != friend_receiver and
+                friendships[friend_initiator][friend_receiver] == False):
                 found_empty_friendship = True
                 friendships[friend_initiator][friend_receiver] = True
                 friendships[friend_receiver][friend_initiator] = True
@@ -124,22 +127,22 @@ def random_message_sql(num_to_generate, num_users):
         "What Stacy Said", "SNL"
     ]
 
-    message_string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." \
-        "Duis turpis lectus, luctus sodales pretium sit amet, malesuada eget diam." \
-        "Donec congue purus facilisis posuere rutrum. Vivamus condimentum lacus" \
-        "vitae nisi molestie vestibulum. Curabitur nec libero eu ipsum sollicitudin" \
-        "consequat id id risus. Nulla facilisi. Sed iaculis, risus a volutpat" \
-        "rutrum, urna eros sagittis metus, ac fringilla nunc metus non dolor. Sed" \
-        "cursus tortor et rhoncus scelerisque. Ut imperdiet rutrum magna, a" \
-        "pellentesque odio consequat eget. Aliquam varius, nibh eget maximus" \
-        "placerat, quam eros congue lectus, eget fringilla lorem enim in erat." \
-        "Maecenas id turpis felis. Nulla ipsum odio, vulputate at cursus venenatis," \
-        "pretium non tellus. Fusce ac magna vulputate, varius nisi eget, dapibus" \
-        "mauris. Vestibulum sed dolor sit amet eros tempor vehicula. Sed placerat" \
-        "eleifend nisi vel viverra. Aenean tristique iaculis nisl. Sed fermentum" \
-        "turpis a tincidunt posuere."
-
-    message_spaces = [i for i, letter in enumerate(message_string) if letter == ' ']
+    message_pool = [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Duis turpis lectus, luctus sodales pretium sit amet, malesuada eget diam.",
+        "Donec congue purus facilisis posuere rutrum. Vivamus condimentum lacus.",
+        "Vitae nisi molestie vestibulum. Curabitur nec libero eu ipsum sollicitudin.",
+        "Consequat id id risus. Nulla facilisi. Sed iaculis, risus a volutpat.",
+        "Rutrum, urna eros sagittis metus, ac fringilla nunc metus non dolor. Sed.",
+        "Cursus tortor et rhoncus scelerisque. Ut imperdiet rutrum magna, a.",
+        "Pellentesque odio consequat eget. Aliquam varius, nibh eget maximus.",
+        "Placerat, quam eros congue lectus, eget fringilla lorem enim in erat.",
+        "Maecenas id turpis felis. Nulla ipsum odio, vulputate at cursus venenatis.",
+        "Pretium non tellus. Fusce ac magna vulputate, varius nisi eget, dapibus.",
+        "Mauris. Vestibulum sed dolor sit amet eros tempor vehicula. Sed placerat.",
+        "Eleifend nisi vel viverra. Aenean tristique iaculis nisl. Sed fermentum.",
+        "Turpis a tincidunt posuere."
+    ]
 
     message_date_range_start = datetime.datetime.strptime('2015-01-01 00:00:00',
                                                  '%Y-%m-%d %H:%M:%S')
@@ -156,16 +159,13 @@ def random_message_sql(num_to_generate, num_users):
         message_date_sent = "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS')" \
                             % message_date_raw
 
-        message_sender = random.choice(range(0, num_users))
+        message_sender = random.choice(range(1, num_users))
         message_recipient = message_sender
         while message_sender == message_recipient:
-            message_recipient = random.choice(range(0, num_users))
+            message_recipient = random.choice(range(1, num_users))
 
         message_subject = random.choice(subject_pool)
-
-        message_body_start = random.choice(message_spaces)
-        message_body = message_string[(message_body_start+1):]
-        message_body = message_body.capitalize()
+        message_body    = random.choice(message_pool)[:100]  # max 100 characters in column
 
         sql.append("INSERT INTO Message (subject, body, recipient, sender, date_sent) "
                    "VALUES ('%s', '%s', %d, %d, %s);"
@@ -202,7 +202,7 @@ def random_group_sql(num_to_generate):
     for i in range(0, num_to_generate):
         group_name = random.choice(group_names_pool)
         group_description = random.choice(group_descriptions_pool)
-        enroll_limit = random.randint(1,100)
+        enroll_limit = random.randint(75, 100)
         sql.append("INSERT INTO User_Group (group_name, group_description, group_enroll_limit) "
                    "VALUES ('%s', '%s',  %i);"
                    % (group_name, group_description, enroll_limit))
