@@ -108,11 +108,11 @@ END;
 PROMPT ----- CREATING GROUP -----
 
 CREATE TABLE User_Group (
-	group_id NUMBER(10),
-	group_name VARCHAR(64) NOT NULL,
-	group_description VARCHAR(160),
-	group_enroll_limit NUMBER(6),
-	CONSTRAINT group_PK PRIMARY KEY (group_id)
+    group_id NUMBER(10),
+    group_name VARCHAR(64) NOT NULL,
+    group_description VARCHAR(160),
+    group_enroll_limit NUMBER(6),
+    CONSTRAINT group_PK PRIMARY KEY (group_id)
 );
 
 DROP SEQUENCE group_seq;
@@ -137,35 +137,36 @@ CREATE TABLE Group_Member (
         REFERENCES FS_User (user_id)
 );
 
-	
+
 --Tries to count the number of records per group_id and compare it to enrollment limit
 -- Group functions not allowed, neither are subqueries
 CREATE OR REPLACE TRIGGER check_enrollment
-    BEFORE INSERT ON Group_Member
-	REFERENCING NEW AS newRow
-	FOR EACH ROW
-	DECLARE 
-	    g_cnt NUMBER;
-	    g_limit NUMBER;
-	BEGIN
-	    SELECT COUNT(*)
-	    INTO g_cnt
-	    FROM (
-		    SELECT group_id
-		    FROM Group_Member
-	        WHERE Group_Member.group_id = :newRow.group_id
-	    );
-		
-	    SELECT group_enroll_limit
-	    INTO g_limit
-	    FROM User_Group
-	    WHERE User_Group.group_id = :newRow.group_id;
+BEFORE INSERT ON Group_Member
+REFERENCING NEW AS newRow
+FOR EACH ROW
+DECLARE 
+    g_cnt NUMBER;
+    g_limit NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO g_cnt
+    FROM (
+        SELECT group_id
+        FROM Group_Member
+        WHERE Group_Member.group_id = :newRow.group_id
+    );
 
-	    IF g_cnt = g_limit THEN
-		    raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
+    SELECT group_enroll_limit
+    INTO g_limit
+    FROM User_Group
+    WHERE User_Group.group_id = :newRow.group_id;
+
+    IF g_cnt = g_limit THEN
+        raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
     END IF;
 END;
 /
+
 
     
 ------------------------------------------------------------------------------
