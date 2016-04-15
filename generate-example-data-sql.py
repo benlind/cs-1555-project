@@ -1,3 +1,15 @@
+################################################################################
+# Class: CS 1555 Database Management Systems
+# Instructor: Prof. Mohamed Sharaf
+# Contributors:
+#   - Benjamin Lind (bdl22)
+#   - Autumn Good (alg161)
+#   - Fadi Alchoufete (fba4)
+#
+# generate-example-data-sql.py generates random SQL INSERT statements to
+# populate the database tables with test data.
+################################################################################
+
 #!/usr/bin/python
 import sys
 import random
