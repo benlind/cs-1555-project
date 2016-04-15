@@ -7,6 +7,7 @@ def main():
     sql = list()
 
     num_users = 100  # number of users to generate
+    num_groups = 30 # number of groups to generate
     
     user_sql = random_user_sql(num_users)
     sql += user_sql
@@ -16,6 +17,12 @@ def main():
 
     message_sql = random_message_sql(100, num_users)
     sql += message_sql
+
+    group_sql = random_group_sql(num_groups)
+    sql += group_sql
+
+    group_member_sql = random_group_membership_sql(100, num_groups, num_users)
+    sql += group_member_sql
 
     final_sql = "\n".join(sql)
 
@@ -167,6 +174,54 @@ def random_date_between(start, end, date_only):
         return final_date.strftime('%Y-%m-%d')
     
     return final_date.strftime('%Y-%m-%d %H:%M:%S')
+
+def random_group_sql(num_to_generate):
+
+    sql = ['--------------------------------------------',
+           '------------- GENERATING GROUPS ------------',
+           '--------------------------------------------']
+    group_names_pool = [
+        "Book Club", "Swim Team", "Bake Club", "Bird Watchers", "Summer Camp", "Knitting Circle"
+        ]
+    group_descriptions_pool = [
+        "For fellow enthusiasts", "To share events and outings", "For serious fans only", "Keep up with updates and events"
+        ]
+
+    for i in range(0, num_to_generate):
+        group_name = random.choice(group_names_pool)
+        group_description = random.choice(group_descriptions_pool)
+        enroll_limit = random.randint(1,100)
+        sql.append("INSERT INTO User_Group (group_name, group_description, group_enroll_limit) "
+                   "VALUES ('%s', '%s',  %i);"
+                   % (group_name, group_description, enroll_limit))
+
+    sql.append("")
+    return sql
+
+def random_group_membership_sql (num_to_generate, num_groups, num_users):
+    sql = ['--------------------------------------------',
+           '------- GENERATING GROUP MEMBERSHIP --------',
+           '--------------------------------------------']
+    
+    group_members = [[] for x in range(num_groups)]
+
+    for i in range(0, num_to_generate):
+        rand_group_id = random.randint(0,num_groups-1)
+        rand_user_id = random.randint(0,num_users-1)
+
+        while rand_user_id in group_members[rand_group_id]:
+            rand_group_id = random.randint(0,num_groups-1)
+            rand_user_id = random.randint(0,num_users-1)
+
+        group_members[rand_group_id].append(rand_user_id)
+        sql.append("INSERT INTO Group_Member (group_id, user_id) "
+                   "VALUES (%i, %i);"
+                   % (rand_group_id, rand_user_id))
+
+    sql.append("")
+    return sql
+        
+    
 
 
         
