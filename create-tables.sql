@@ -161,7 +161,7 @@ CREATE OR REPLACE TRIGGER check_enrollment
 		FROM User_Group
 		WHERE User_Group.group_id = :newRow.group_id;
 
-		IF g_cnt > g_limit THEN
+		IF g_cnt = g_limit THEN
 			raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
     END IF;
 END;
