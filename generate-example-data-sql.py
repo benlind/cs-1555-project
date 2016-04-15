@@ -62,7 +62,8 @@ def random_user_sql(num_to_generate):
         email_num = 2
         email = fname.lower() + lname.lower() + "@test-domain.com"
         while email in emails:
-            email = fname.lower() + lname.lower() + str(email_num) + "@test-domain.com"
+            email = fname.lower() + lname.lower() + str(email_num) \
+                + "@test-domain.com"
             email_num += 1
         emails.append(email)
 
@@ -73,6 +74,8 @@ def random_user_sql(num_to_generate):
 
     sql.append("")
     return sql
+
+
 
 def random_friendship_sql(num_to_generate, num_users):
     sql = ['--------------------------------------------',
@@ -90,7 +93,8 @@ def random_friendship_sql(num_to_generate, num_users):
         established = random.choice([1, 0])
         est_date = "NULL"
         if (established):
-            est_date_raw = random_date_between(est_range_start, est_range_end, False)
+            est_date_raw = random_date_between(est_range_start,
+                                               est_range_end, False)
             est_date = "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS')" % est_date_raw
 
         friend_initiator = None
@@ -112,9 +116,12 @@ def random_friendship_sql(num_to_generate, num_users):
     sql.append("")
     return sql
 
+
+
 def random_message_sql(num_to_generate, num_users):
     subject_pool = [
-        "Lunch", "Dinner", "Summer Vacation", "Sushi", "Funny Video", "Lottery", "What Stacy Said", "SNL"
+        "Lunch", "Dinner", "Summer Vacation", "Sushi", "Funny Video", "Lottery",
+        "What Stacy Said", "SNL"
     ]
 
     message_string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." \
@@ -144,8 +151,10 @@ def random_message_sql(num_to_generate, num_users):
            '--------------------------------------------']
 
     for i in range(0, num_to_generate):
-        message_date_raw = random_date_between(message_date_range_start, message_date_range_end, False)
-        message_date_sent = "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS')" % message_date_raw
+        message_date_raw = random_date_between(message_date_range_start,
+                                               message_date_range_end, False)
+        message_date_sent = "TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS')" \
+                            % message_date_raw
 
         message_sender = random.choice(range(0, num_users))
         message_recipient = message_sender
@@ -160,9 +169,12 @@ def random_message_sql(num_to_generate, num_users):
 
         sql.append("INSERT INTO Message (subject, body, recipient, sender, date_sent) "
                    "VALUES ('%s', '%s', %d, %d, %s);"
-                   % (message_subject, message_body, message_recipient, message_sender, message_date_sent))
+                   % (message_subject, message_body, message_recipient,
+                      message_sender, message_date_sent))
 
     return sql
+
+
 
 def random_date_between(start, end, date_only):
     diff = end - start

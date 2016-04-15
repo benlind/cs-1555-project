@@ -128,13 +128,13 @@ END;
 PROMPT ----- CREATING GROUP_MEMBER -----
 
 CREATE TABLE Group_Member (
-	group_id NUMBER(10),
-	user_id NUMBER(10),
-	CONSTRAINT group_members_pk PRIMARY KEY (group_id, user_id),
-	CONSTRAINT group_id_fk FOREIGN KEY (group_id)
-		REFERENCES User_Group (group_id),
-	CONSTRAINT user_id_fk FOREIGN KEY (user_id)
-		REFERENCES FS_User (user_id)
+    group_id NUMBER(10),
+    user_id NUMBER(10),
+    CONSTRAINT group_members_pk PRIMARY KEY (group_id, user_id),
+    CONSTRAINT group_id_fk FOREIGN KEY (group_id)
+        REFERENCES User_Group (group_id),
+    CONSTRAINT user_id_fk FOREIGN KEY (user_id)
+        REFERENCES FS_User (user_id)
 );
 
 	

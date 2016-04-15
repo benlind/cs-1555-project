@@ -11,3 +11,7 @@ This is the repository for our CS 1555 Database Management Systems project.
 - **Benjamin Lind**
 - **Autumn Good**
 - **Fadi Alchoufete**
+
+## Concurrency
+
+This program assumes that only one person will access the database at a time. There are not protections in place to ensure concurrent access works correctly.
