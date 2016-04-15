@@ -109,56 +109,68 @@ END;
 PROMPT ----- CREATING GROUP -----
 
 CREATE TABLE User_Group (
-	group_id NUMBER(10),
-	group_name VARCHAR(64) NOT NULL,
-	group_description VARCHAR(160),
-	group_enroll_limit NUMBER(6),
-    group_enrollment NUMBER (6),
-	CONSTRAINT group_PK PRIMARY KEY (group_id)
+    group_id NUMBER(10),
+    group_name VARCHAR(64) NOT NULL,
+    group_description VARCHAR(160),
+    group_enroll_limit NUMBER(6) NOT NULL,
+    group_enrollment NUMBER (6) NOT NULL,
+    CONSTRAINT group_PK PRIMARY KEY (group_id)
 );
 
 PROMPT ----- CREATING GROUP_MEMBER -----
 
 CREATE TABLE Group_Member (
-	group_id NUMBER(10),
-	user_id NUMBER(10),
-	CONSTRAINT group_members_pk PRIMARY KEY (group_id, user_id),
-	CONSTRAINT group_id_fk FOREIGN KEY (group_id)
-		REFERENCES User_Group (group_id),
-	CONSTRAINT user_id_fk FOREIGN KEY (user_id)
-		REFERENCES FS_User (user_id)
+    group_id NUMBER(10),
+    user_id NUMBER(10),
+    CONSTRAINT group_members_pk PRIMARY KEY (group_id, user_id),
+    CONSTRAINT group_id_fk FOREIGN KEY (group_id)
+        REFERENCES User_Group (group_id),
+    CONSTRAINT user_id_fk FOREIGN KEY (user_id)
+        REFERENCES FS_User (user_id)
 );
 
---Updates the enrollment value in the group tables, where a check is enforced
---Cannot use NEW for table level triggers
-CREATE OR REPLACE TRIGGER increment_enrollment
-	BEFORE INSERT ON Group_Members
-	REFERENCING NEW AS newRow
+-- Set up auto-incrementing for group ids
+DROP SEQUENCE group_seq;
+CREATE SEQUENCE group_seq;
+CREATE OR REPLACE TRIGGER group_auto_increment
+BEFORE INSERT ON User_Group
+FOR EACH ROW
 BEGIN
-	UPDATE User_Group
-    SET group_enrollment = (SELECT COUNT(*)
-            FROM Group_Member
-            WHERE Group_Member.group_id = :newRow.group_id)
-	WHERE User_Group.group_id = :newRow.group_id;
+    SELECT group_seq.nextval INTO :new.group_id FROM dual;
 END;
 /
-	
---Tries to count the number of records per group_id and compare it to enrollment limit
--- Group functions not allowed, neither are subqueries
-CREATE OR REPLACE TRIGGER check_enrollment
-	BEFORE INSERT ON Group_Members
-	REFERENCING NEW AS newRow
+
+-- Enforce group enrollment constraints
+CREATE OR REPLACE TRIGGER group_enrollment
+BEFORE INSERT ON Group_Member
+FOR EACH ROW
+DECLARE
+    enrollment_cnt NUMBER;
+    enrollment_limit NUMBER;
 BEGIN
+    -- Get the current enrollment count (before inserting new user)
     SELECT COUNT(*)
-    INTO g_cnt
+    INTO enrollment_cnt
     FROM (
-        SELECT group_id
+        SELECT user_id
         FROM Group_Member
         WHERE Group_Member.group_id = :new.group_id
     );
 
-    IF g_cnt > 0 THEN
-	   raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
+    -- Get the enrollment limit
+    SELECT group_enroll_limit
+    INTO enrollment_limit
+    FROM User_Group
+    WHERE User_Group.group_id = :new.group_id;
+    
+    IF enrollment_cnt = enrollment_limit THEN
+        -- The group is already at the enrollment limit (before the insert)
+        raise_application_error(-20003, 'The enrollment limit has been reached for this group.');
+    ELSE
+        -- There is room for the new user, so update the enrollment count
+        UPDATE User_Group
+        SET group_enrollment = (enrollment_cnt + 1)
+        WHERE User_Group.group_id = :new.group_id;
     END IF;
 END;
 /
