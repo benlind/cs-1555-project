@@ -22,7 +22,6 @@ DROP TABLE Message;
 DROP TABLE FS_User;
 
 
-
 ------------------------------------------------------------------------------
 -- This section of code was written by: Benjamin Lind (bdl22)
 
@@ -113,9 +112,18 @@ CREATE TABLE User_Group (
 	group_name VARCHAR(64) NOT NULL,
 	group_description VARCHAR(160),
 	group_enroll_limit NUMBER(6),
-    group_enrollment NUMBER (6),
 	CONSTRAINT group_PK PRIMARY KEY (group_id)
 );
+
+DROP SEQUENCE group_seq;
+CREATE SEQUENCE group_seq;
+CREATE OR REPLACE TRIGGER group_auto_increment
+BEFORE INSERT ON User_Group
+FOR EACH ROW
+BEGIN
+    SELECT group_seq.nextval INTO :new.group_id FROM dual;
+END;
+/
 
 PROMPT ----- CREATING GROUP_MEMBER -----
 
@@ -129,40 +137,35 @@ CREATE TABLE Group_Member (
 		REFERENCES FS_User (user_id)
 );
 
---Updates the enrollment value in the group tables, where a check is enforced
---Cannot use NEW for table level triggers
-CREATE OR REPLACE TRIGGER increment_enrollment
-	BEFORE INSERT ON Group_Members
-	REFERENCING NEW AS newRow
-BEGIN
-	UPDATE User_Group
-    SET group_enrollment = (SELECT COUNT(*)
-            FROM Group_Member
-            WHERE Group_Member.group_id = :newRow.group_id)
-	WHERE User_Group.group_id = :newRow.group_id;
-END;
-/
 	
 --Tries to count the number of records per group_id and compare it to enrollment limit
 -- Group functions not allowed, neither are subqueries
 CREATE OR REPLACE TRIGGER check_enrollment
-	BEFORE INSERT ON Group_Members
+	BEFORE INSERT ON Group_Member
 	REFERENCING NEW AS newRow
-BEGIN
-    SELECT COUNT(*)
-    INTO g_cnt
-    FROM (
-        SELECT group_id
-        FROM Group_Member
-        WHERE Group_Member.group_id = :new.group_id
-    );
+	FOR EACH ROW
+	DECLARE 
+		g_cnt NUMBER;
+		g_limit NUMBER;
+	BEGIN
+		SELECT COUNT(*)
+		INTO g_cnt
+		FROM (
+			SELECT group_id
+			FROM Group_Member
+			WHERE Group_Member.group_id = :newRow.group_id
+		);
+		
+		SELECT group_enroll_limit
+		INTO g_limit
+		FROM User_Group
+		WHERE User_Group.group_id = :newRow.group_id;
 
-    IF g_cnt > 0 THEN
-	   raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
+		IF g_cnt > g_limit THEN
+			raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
     END IF;
 END;
 /
-
 
     
 ------------------------------------------------------------------------------
