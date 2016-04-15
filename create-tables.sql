@@ -141,28 +141,28 @@ CREATE TABLE Group_Member (
 --Tries to count the number of records per group_id and compare it to enrollment limit
 -- Group functions not allowed, neither are subqueries
 CREATE OR REPLACE TRIGGER check_enrollment
-	BEFORE INSERT ON Group_Member
+    BEFORE INSERT ON Group_Member
 	REFERENCING NEW AS newRow
 	FOR EACH ROW
 	DECLARE 
-		g_cnt NUMBER;
-		g_limit NUMBER;
+	    g_cnt NUMBER;
+	    g_limit NUMBER;
 	BEGIN
-		SELECT COUNT(*)
-		INTO g_cnt
-		FROM (
-			SELECT group_id
-			FROM Group_Member
-			WHERE Group_Member.group_id = :newRow.group_id
-		);
+	    SELECT COUNT(*)
+	    INTO g_cnt
+	    FROM (
+		    SELECT group_id
+		    FROM Group_Member
+	        WHERE Group_Member.group_id = :newRow.group_id
+	    );
 		
-		SELECT group_enroll_limit
-		INTO g_limit
-		FROM User_Group
-		WHERE User_Group.group_id = :newRow.group_id;
+	    SELECT group_enroll_limit
+	    INTO g_limit
+	    FROM User_Group
+	    WHERE User_Group.group_id = :newRow.group_id;
 
-		IF g_cnt = g_limit THEN
-			raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
+	    IF g_cnt = g_limit THEN
+		    raise_application_error(-20002, 'The enrollment limit has been reached for this group.');
     END IF;
 END;
 /
