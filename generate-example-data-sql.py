@@ -218,14 +218,14 @@ def random_group_membership_sql (num_to_generate, num_groups, num_users):
     group_members = [[] for x in range(num_groups)]
 
     for i in range(0, num_to_generate):
-        rand_group_id = random.randint(0,num_groups-1)
-        rand_user_id = random.randint(0,num_users-1)
+        rand_group_id = random.randint(1,num_groups)
+        rand_user_id = random.randint(1,num_users)
 
-        while rand_user_id in group_members[rand_group_id]:
-            rand_group_id = random.randint(0,num_groups-1)
-            rand_user_id = random.randint(0,num_users-1)
+        while rand_user_id in group_members[rand_group_id-1]:
+            rand_group_id = random.randint(1,num_groups)
+            rand_user_id = random.randint(1,num_users)
 
-        group_members[rand_group_id].append(rand_user_id)
+        group_members[rand_group_id-1].append(rand_user_id)
         sql.append("INSERT INTO Group_Member (group_id, user_id) "
                    "VALUES (%i, %i);"
                    % (rand_group_id, rand_user_id))
