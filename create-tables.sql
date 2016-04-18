@@ -199,3 +199,15 @@ BEGIN
     SELECT message_seq.nextval INTO :new.message_id FROM dual;
 END;
 /
+
+-- Create trigger to check that sender and recipient are not the same.
+CREATE OR REPLACE TRIGGER check_message_send_rec
+BEFORE INSERT ON Message
+REFERENCING NEW AS newRow
+FOR EACH ROW
+BEGIN
+    IF :newRow.sender = :newRow.recipient THEN
+        raise_application_error(-20003, 'The sender and recipient for this message cannot be the same.');
+    END IF;
+END;
+/
