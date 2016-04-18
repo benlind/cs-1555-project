@@ -72,20 +72,19 @@ public class Driver {
 
             prep_statement.executeUpdate();
             connection.commit();
+            System.out.println("Created user '" + name + "'.\n");
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("createUser(): SQLException: " + e.toString());
         }
         finally {
             try {
                 if (prep_statement != null) prep_statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("createUser(): Cannot close Statement. Machine error: " + e.toString());
             }
         }
-
-        System.out.println("Created user.\n");
     }
 
     public void initiateFriendship(int initiator_id, int receiver_id) {
@@ -105,15 +104,15 @@ public class Driver {
             prep_statement.executeUpdate();
             connection.commit();
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("initiateFriendship(): Error running SQL: " + e.toString());
         }
         finally {
             try {
                 if (prep_statement != null) prep_statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("initiateFriendship(): Cannot close Statement. Machine error: " + e.toString());
             }
         }
         
@@ -138,20 +137,19 @@ public class Driver {
 
             statement.executeQuery(query);
             connection.commit();
+            System.out.println("Established friendship.\n");
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("establishFriendship(): Error running SQL: " + e.toString());
         }
         finally {
             try {
                 if (statement != null) statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("establishFriendship(): Cannot close Statement. Machine error: " + e.toString());
             }
         }
-        
-        System.out.println("Established friendship.\n");
     }
 
     public void listUsers() {
@@ -173,15 +171,15 @@ public class Driver {
                                    + result_set.getTimestamp(5) + ")");
             }
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("listUsers(): Error running SQL: " + e.toString());
         }
         finally {
             try {
                 if (statement != null) statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("listUsers(): Cannot close Statement. Machine error: " + e.toString());
             }
         }        
 
@@ -207,15 +205,15 @@ public class Driver {
                                    + result_set.getTimestamp(5) + ")");
             }
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("listFriendships(): Error running SQL: " + e.toString());
         }
         finally {
             try {
                 if (statement != null) statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("listFriendships(): Cannot close Statement. Machine error: " + e.toString());
             }
         }        
 
@@ -246,15 +244,15 @@ public class Driver {
                 friendship_id = result_set.getLong(1);
             }
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("getFriendshipID(): Error running SQL: " + e.toString());
         }
         finally {
             try {
                 if (prep_statement != null) prep_statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("getFriendshipID(): Cannot close Statement. Machine error: " + e.toString());
             }
         }
         return friendship_id;
@@ -273,15 +271,15 @@ public class Driver {
                 exists = true;
             }
         }
-        catch (SQLException Ex) {
-            System.out.println("Error running SQL: " + Ex.toString());
+        catch (SQLException e) {
+            System.out.println("userExists(): Error running SQL: " + e.toString());
         }
         finally {
             try {
                 if (prep_statement != null) prep_statement.close();
             }
             catch (SQLException e) {
-                System.out.println("Cannot close Statement. Machine error: " + e.toString());
+                System.out.println("userExists(): Cannot close Statement. Machine error: " + e.toString());
             }
         }
         return exists;
@@ -307,18 +305,29 @@ public class Driver {
             TestDriver.connection = DriverManager.getConnection(db_url, db_user, db_pass);
             System.out.println("\nConnected to DB.\n");
         }
-        catch (Exception Ex)  {
-            System.out.println("Error connecting to database. Machine Error: " +
-                               Ex.toString());
+        catch (Exception e)  {
+            System.out.println("Error connecting to database. Machine Error: " + e.toString());
             System.exit(0);
         }
 
         String command;
+        boolean showHelp = true;
 
         while (true) {
-            System.out.println("Command list:\n "
-                + "\t(q) quit, (d) demo, (1) createUser, (2) initiateFriendship, (3) establishFriendship\n"
-                + "\t(13) listUsers, (14) listFriendships");
+            if (showHelp == true) {
+                System.out.println("Command list:\n"
+                    + "\t(q) quit\n"
+                    + "\t(h) help\n"
+                    + "\t(d) demo\n"
+                    + "\t(1) createUser\n"
+                    + "\t(2) initiateFriendship\n"
+                    + "\t(3) establishFriendship\n"
+                    + "\t(13) listUsers\n"
+                    + "\t(14) listFriendships\n");
+
+                showHelp = false;
+            }
+
             System.out.print("Enter a command: ");
             command = TestDriver.scanner.nextLine().toLowerCase();
 
@@ -326,7 +335,9 @@ public class Driver {
 
             System.out.println();
 
-            if (command.equals("createuser") || command.equals("1")) {
+            if (command.equals("help") || command.equals("h")) {
+                showHelp = true;
+            }else if (command.equals("createuser") || command.equals("1")) {
                 System.out.println("FUNCTION: createUser()\n");
                 
                 System.out.print("Enter a name: ");
