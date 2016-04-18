@@ -10,6 +10,12 @@ If you want to re-generate test data, run `python generate-example-data-sql.py`.
 
 ## Compiling and Running the Driver
 
+### Create Parameters file
+
+Copy `Constants.java.dist` to `Constants.java` and modify the parameters to match your environment before continuing.
+
+### Compile Driver file
+
 To compile the driver, run `javac Driver.java`. To run it, run `java Driver`.
 
 ## Important files

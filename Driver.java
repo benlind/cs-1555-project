@@ -297,19 +297,13 @@ public class Driver {
         Driver TestDriver = new Driver();
 
         // Input database credentials
-        String db_user;
-        String db_pass;
-
-        System.out.print("Enter SQL username: ");
-        db_user = TestDriver.scanner.nextLine();
-
-        Console console = System.console();
-        db_pass = new String(console.readPassword("Enter SQL password: "));
+        String db_user = Constants.JDBC_USERNAME;
+        String db_pass = Constants.JDBC_PASSWORD;
 
         try {
             // DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             // Connect to the database
-            String db_url = "jdbc:oracle:thin:@class3.cs.pitt.edu:1521:dbclass";
+            String db_url = Constants.JDBC_URL;
             TestDriver.connection = DriverManager.getConnection(db_url, db_user, db_pass);
             System.out.println("\nConnected to DB.\n");
         }

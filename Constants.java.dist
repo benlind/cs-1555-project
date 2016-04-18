@@ -1,0 +1,25 @@
+/*******************************************************************************
+ * Class: CS 1555 Database Management Systems
+ * Instructor: Prof. Mohamed Sharaf
+ * Contributors:
+ *   - Benjamin Lind (bdl22)
+ *   - Autumn Good (alg161)
+ *   - Fadi Alchoufete (fba4)
+ *
+ * Constants.java contains parameters for configuring the FaceSpace
+ * application database.
+ *
+ * Copy this distributed file to Constants.java before compiling.
+ ******************************************************************************/
+
+public final class Constants {
+    private Constants() {} // Prevent instantiation
+
+    public static final String JDBC_HOSTNAME = "class3.cs.pitt.edu"; // JDBC Hostname (Default: localhost)
+    public static final String JDBC_PORT     = "1521";               // JDBC Port (Default: 1521)
+    public static final String JDBC_DATABASE = "dbclass";            // JDBC Database Name
+    public static final String JDBC_USERNAME = "system";             // JDBC Username
+    public static final String JDBC_PASSWORD = "cs1555";             // JDBC Password
+
+    public static final String JDBC_URL      = "jdbc:oracle:thin:@" + JDBC_HOSTNAME + ":" + JDBC_PORT + ":" + JDBC_DATABASE;
+}
