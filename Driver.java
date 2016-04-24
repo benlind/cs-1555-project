@@ -152,6 +152,62 @@ public class Driver {
         }
     }
 
+    public void displayFriends(int user_id) {
+        try {
+            query = "SELECT friendship_id, user_id, name, established, " +
+                "friend_initiator, friend_receiver " +
+                "FROM Friendship, FS_User " +
+                "WHERE (friend_initiator = ? OR friend_receiver = ?) AND " +
+                "((friend_initiator = ? AND friend_receiver = user_id) OR " +
+                " (friend_receiver = ? AND friend_initiator = user_id))";
+
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setLong(1, user_id);
+            prep_statement.setLong(2, user_id);
+            prep_statement.setLong(3, user_id);
+            prep_statement.setLong(4, user_id);
+
+            result_set = prep_statement.executeQuery();
+
+            if (!result_set.isBeforeFirst()) {
+                // ...there are no results
+                System.out.println("User " + user_id + " does not have any friends.");
+            }
+            else {
+                // The user has friends.
+                System.out.println("Friends of user " + user_id + ":");
+                
+                while (result_set.next()) {
+                    System.out.print("Name: '" + result_set.getString(3) + "' " +
+                                     "(friendship_id: " + result_set.getLong(1) + ", " +
+                                     "user_id: " + result_set.getLong(2) + ", ");
+                    if (result_set.getLong(4) == 1) {
+                        System.out.println("ESTABLISHED)");
+                    }
+                    else {
+                        System.out.println("PENDING)");
+                    }
+                }
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("listUsers(): Error running SQL: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("displayFriends(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }        
+
+        System.out.println();
+    }
+
+
+    /***** HELPER FUNCTIONS *****/
+
     public void listUsers() {
         System.out.println("LISTING USERS");
 
@@ -322,6 +378,7 @@ public class Driver {
                     + "\t(1) createUser\n"
                     + "\t(2) initiateFriendship\n"
                     + "\t(3) establishFriendship\n"
+                    + "\t(4) displayFriends\n"
                     + "\t(13) listUsers\n"
                     + "\t(14) listFriendships\n");
 
@@ -337,7 +394,8 @@ public class Driver {
 
             if (command.equals("help") || command.equals("h")) {
                 showHelp = true;
-            }else if (command.equals("createuser") || command.equals("1")) {
+            }
+            else if (command.equals("createuser") || command.equals("1")) {
                 System.out.println("FUNCTION: createUser()\n");
                 
                 System.out.print("Enter a name: ");
@@ -392,8 +450,7 @@ public class Driver {
                 }
                 int initiator_id = Integer.parseInt(initiator_id_str);
                 if (!TestDriver.userExists(initiator_id)) {
-                    System.out.println("\nUser with id " + Integer.toString(initiator_id)
-                                       + " does not exist.\n");
+                    System.out.println("\nUser with id " + initiator_id + " does not exist.\n");
                     continue;
                 }
 
@@ -406,8 +463,7 @@ public class Driver {
                 }
                 int receiver_id = Integer.parseInt(receiver_id_str);
                 if (!TestDriver.userExists(receiver_id)) {
-                    System.out.println("\nUser with id " + Integer.toString(receiver_id)
-                                       + " does not exist.\n");
+                    System.out.println("\nUser with id " + receiver_id + " does not exist.\n");
                     continue;
                 }
                 if (initiator_id == receiver_id) {
@@ -430,6 +486,10 @@ public class Driver {
                     continue;
                 }
                 int first_id = Integer.parseInt(first_id_str);
+                if (!TestDriver.userExists(first_id)) {
+                    System.out.println("\nUser with id " + first_id + " does not exist.\n");
+                    continue;
+                }
 
                 System.out.print("Enter the second user's ID: ");
                 String second_id_str = TestDriver.scanner.nextLine();
@@ -439,7 +499,10 @@ public class Driver {
                     continue;
                 }
                 int second_id = Integer.parseInt(second_id_str);
-
+                if (!TestDriver.userExists(second_id)) {
+                    System.out.println("\nUser with id " + second_id + " does not exist.\n");
+                    continue;
+                }
                 if (first_id == second_id) {
                     System.out.println("\nA person cannot be friends with themselves.\n");
                     continue;
@@ -448,6 +511,26 @@ public class Driver {
                 System.out.println();
 
                 TestDriver.establishFriendship(first_id, second_id);
+            }
+            else if (command.equals("displayFriends") || command.equals("4")) {
+                System.out.println("FUNCTION: displayFriends()\n");
+
+                System.out.print("Enter the user's ID: ");
+                String user_id_str = TestDriver.scanner.nextLine();
+                
+                if (!isInteger(user_id_str)) {
+                    System.out.println("\nInvalid ID (must be an integer)\n");
+                    continue;
+                }
+                int user_id = Integer.parseInt(user_id_str);
+                if (!TestDriver.userExists(user_id)) {
+                    System.out.println("\nUser with id " + user_id + " does not exist.\n");
+                    continue;
+                }
+                
+                System.out.println();
+
+                TestDriver.displayFriends(user_id);
             }
             else if (command.equals("listusers") || command.equals("13")) {
                 TestDriver.listUsers();
