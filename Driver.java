@@ -174,7 +174,7 @@ public class Driver {
                 System.out.println("User " + user_id + " does not have any friends.");
             }
             else {
-                // The user has friends.
+                // The user has friends
                 System.out.println("Friends of user " + user_id + ":");
                 
                 while (result_set.next()) {
@@ -202,6 +202,56 @@ public class Driver {
             }
         }        
 
+        System.out.println();
+    }
+
+    public void searchForUser(String search_str) {
+        // Split string into tokens based on spaces
+        String tokens = search_str.trim().replaceAll("\\s+", "|");
+
+        try {
+            // Search all relevant fields for the query
+            query = "SELECT user_id, name, email, dob FROM FS_User " +
+                "WHERE REGEXP_LIKE(user_id, ?) " +
+                "OR    REGEXP_LIKE(name,    ?) " +
+                "OR    REGEXP_LIKE(email,   ?) " +
+                "OR    REGEXP_LIKE(dob,     ?)";
+
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setString(1, tokens);
+            prep_statement.setString(2, tokens);
+            prep_statement.setString(3, tokens);
+            prep_statement.setString(4, tokens);
+            
+            result_set = prep_statement.executeQuery();
+            
+            if (!result_set.isBeforeFirst()) {
+                // ...there are no results
+                System.out.println("Your search returned no results.");
+            }
+            else {
+                // Some users were found
+                System.out.println("Search results:");
+                
+                while (result_set.next()) {
+                    System.out.println("Name: '" + result_set.getString(2) + "' " +
+                                       "(user_id: " + result_set.getLong(1) + ", " +
+                                       "email: '" + result_set.getString(3) + "', " +
+                                       "dob: " + result_set.getDate(4) + ")");
+                }
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("dropUser(): SQLException: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("dropUser(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }
         System.out.println();
     }
 
@@ -432,6 +482,7 @@ public class Driver {
                     + "\t(2) initiateFriendship\n"
                     + "\t(3) establishFriendship\n"
                     + "\t(4) displayFriends\n"
+                    + "\t(9) searchForUser\n"
                     + "\t(12) dropUser\n"
                     + "\t(13) listUsers\n"
                     + "\t(14) listFriendships\n");
@@ -537,6 +588,21 @@ public class Driver {
                 System.out.println();
 
                 TestDriver.displayFriends(user_id);
+            }
+            else if (command.equals("searchforuser") || command.equals("9")) {
+                System.out.println("FUNCTION: searchForUser()\n");
+
+                System.out.print("Enter your search queries, separated by spaces: ");
+                String search_str = TestDriver.scanner.nextLine();
+
+                if (search_str.isEmpty()) {
+                    System.out.println("ERROR: You must enter a query.\n");
+                    continue;
+                }
+                
+                System.out.println();
+
+                TestDriver.searchForUser(search_str);
             }
             else if (command.equals("dropuser") || command.equals("12")) {
                 System.out.println("FUNCTION: dropUser()\n");
