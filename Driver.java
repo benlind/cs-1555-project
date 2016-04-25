@@ -87,7 +87,7 @@ public class Driver {
         }
     }
 
-    public void initiateFriendship(int initiator_id, int receiver_id) {
+    public void initiateFriendship(long initiator_id, long receiver_id) {
         if (getFriendshipID(initiator_id, receiver_id) != -1) {
             System.out.println("Could not create friendship (already exists?)\n");
             return;
@@ -119,7 +119,7 @@ public class Driver {
         System.out.println("Initiated friendship.\n");
     }
     
-    public void establishFriendship(int first_id, int second_id) {
+    public void establishFriendship(long first_id, long second_id) {
         try {
             long friendship_id = getFriendshipID(first_id, second_id);
             
@@ -152,7 +152,7 @@ public class Driver {
         }
     }
 
-    public void displayFriends(int user_id) {
+    public void displayFriends(long user_id) {
         try {
             query = "SELECT friendship_id, user_id, name, established, " +
                 "friend_initiator, friend_receiver " +
@@ -204,6 +204,32 @@ public class Driver {
 
         System.out.println();
     }
+
+    public void dropUser(long user_id) {
+        try {
+            query = "DELETE FROM FS_User WHERE user_id=?";
+
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setLong(1, user_id);
+
+            prep_statement.executeUpdate();
+            connection.commit();
+            System.out.println("Deleted user '" + user_id + "'.\n");
+        }
+        catch (SQLException e) {
+            System.out.println("dropUser(): SQLException: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("dropUser(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }
+    }
+
+
 
 
     /***** HELPER FUNCTIONS *****/
@@ -277,11 +303,11 @@ public class Driver {
     }
 
     /**
-     * getFriendshipID(int first_id, int second_id) returns the
+     * getFriendshipID(long first_id, long second_id) returns the
      * friendship ID that exists between the two passed user IDs. If
      * no friendship exists, -1 is returned.
      */
-    public long getFriendshipID(int first_id, int second_id) {
+    public long getFriendshipID(long first_id, long second_id) {
         long friendship_id = -1;
         try {
             query = "SELECT friendship_id FROM Friendship "
@@ -314,7 +340,34 @@ public class Driver {
         return friendship_id;
     }
 
-    public boolean userExists(int user_id) {
+    /**
+     * inputUserID() prompts for a user ID and validates that the ID
+     * exists and is numeric.
+     *
+     * Parameters:
+     *  - prompt    string to prompt the user with for input
+     *
+     * Return values:
+     *  - -1 if the inputted ID is non-numeric or does not exist
+     *  - the numeric ID if the ID exists
+     */
+    public long inputUserID(String prompt) {
+        System.out.print(prompt);
+        String user_id_str = scanner.nextLine();
+        if (!isInteger(user_id_str)) {
+            System.out.println("\nERROR: Invalid ID (must be an integer)\n");
+            return -1;
+        }
+        
+        long user_id = Integer.parseInt(user_id_str);
+        if (!userExists(user_id)) {
+            System.out.println("\nERROR: User with id " + user_id + " does not exist.\n");
+            return -1;
+        }
+        return user_id;
+    }
+
+    public boolean userExists(long user_id) {
         boolean exists = false;
         try {
             query = "SELECT user_id FROM FS_User WHERE user_id = ?";
@@ -379,6 +432,7 @@ public class Driver {
                     + "\t(2) initiateFriendship\n"
                     + "\t(3) establishFriendship\n"
                     + "\t(4) displayFriends\n"
+                    + "\t(12) dropUser\n"
                     + "\t(13) listUsers\n"
                     + "\t(14) listFriendships\n");
 
@@ -401,22 +455,22 @@ public class Driver {
                 System.out.print("Enter a name: ");
                 String name = TestDriver.scanner.nextLine().trim();
                 if (name.isEmpty()) {
-                    System.out.println("\nYou must enter a name.\n");
+                    System.out.println("\nERROR: You must enter a name.\n");
                     continue;
                 }
                 else if (name.length() > 128) {
-                    System.out.println("\nName cannot be more than 128 characters.\n");
+                    System.out.println("\nERROR: Name cannot be more than 128 characters.\n");
                     continue;
                 }
                 
                 System.out.print("Enter an email: ");
                 String email = TestDriver.scanner.nextLine().trim();
                 if (email.isEmpty()) {
-                    System.out.println("\nYou must enter an email.\n");
+                    System.out.println("\nERROR: You must enter an email.\n");
                     continue;
                 }
                 else if (email.length() > 254) {
-                    System.out.println("\nEmail cannot be more than 254 characters.\n");
+                    System.out.println("\nERROR: Email cannot be more than 254 characters.\n");
                     continue;
                 }
                 
@@ -441,33 +495,14 @@ public class Driver {
             else if (command.equals("initiatefriendship") || command.equals("2")) {
                 System.out.println("FUNCTION: initiateFriendship()\n");
 
-                System.out.print("Enter the initiator's user ID: ");
-                String initiator_id_str = TestDriver.scanner.nextLine();
-                
-                if (!isInteger(initiator_id_str)) {
-                    System.out.println("\nInvalid ID (must be an integer)\n");
-                    continue;
-                }
-                int initiator_id = Integer.parseInt(initiator_id_str);
-                if (!TestDriver.userExists(initiator_id)) {
-                    System.out.println("\nUser with id " + initiator_id + " does not exist.\n");
-                    continue;
-                }
+                long initiator_id = TestDriver.inputUserID("Enter the initiator's ID: ");
+                if (initiator_id == -1) { continue; }
 
-                System.out.print("Enter the receiver's user ID: ");
-                String receiver_id_str = TestDriver.scanner.nextLine();
+                long receiver_id = TestDriver.inputUserID("Enter the receiver's ID: ");
+                if (receiver_id == -1) { continue; }
 
-                if (!isInteger(receiver_id_str)) {
-                    System.out.println("\nInvalid ID (must be an integer)\n");
-                    continue;
-                }
-                int receiver_id = Integer.parseInt(receiver_id_str);
-                if (!TestDriver.userExists(receiver_id)) {
-                    System.out.println("\nUser with id " + receiver_id + " does not exist.\n");
-                    continue;
-                }
                 if (initiator_id == receiver_id) {
-                    System.out.println("\nA person cannot be friends with themselves.\n");
+                    System.out.println("\nERROR: A person cannot be friends with themselves.\n");
                     continue;
                 }
 
@@ -478,33 +513,14 @@ public class Driver {
             else if (command.equals("establishfriendship") || command.equals("3")) {
                 System.out.println("FUNCTION: establishFriendship()\n");
 
-                System.out.print("Enter the first user's ID: ");
-                String first_id_str = TestDriver.scanner.nextLine();
-                
-                if (!isInteger(first_id_str)) {
-                    System.out.println("\nInvalid ID (must be an integer)\n");
-                    continue;
-                }
-                int first_id = Integer.parseInt(first_id_str);
-                if (!TestDriver.userExists(first_id)) {
-                    System.out.println("\nUser with id " + first_id + " does not exist.\n");
-                    continue;
-                }
+                long first_id = TestDriver.inputUserID("Enter the first user's ID: ");
+                if (first_id == -1) { continue; }
 
-                System.out.print("Enter the second user's ID: ");
-                String second_id_str = TestDriver.scanner.nextLine();
+                long second_id = TestDriver.inputUserID("Enter the second user's ID: ");
+                if (second_id == -1) { continue; }
 
-                if (!isInteger(second_id_str)) {
-                    System.out.println("\nInvalid ID (must be an integer)\n");
-                    continue;
-                }
-                int second_id = Integer.parseInt(second_id_str);
-                if (!TestDriver.userExists(second_id)) {
-                    System.out.println("\nUser with id " + second_id + " does not exist.\n");
-                    continue;
-                }
                 if (first_id == second_id) {
-                    System.out.println("\nA person cannot be friends with themselves.\n");
+                    System.out.println("\nERROR: A person cannot be friends with themselves.\n");
                     continue;
                 }
 
@@ -512,25 +528,35 @@ public class Driver {
 
                 TestDriver.establishFriendship(first_id, second_id);
             }
-            else if (command.equals("displayFriends") || command.equals("4")) {
+            else if (command.equals("displayfriends") || command.equals("4")) {
                 System.out.println("FUNCTION: displayFriends()\n");
 
-                System.out.print("Enter the user's ID: ");
-                String user_id_str = TestDriver.scanner.nextLine();
-                
-                if (!isInteger(user_id_str)) {
-                    System.out.println("\nInvalid ID (must be an integer)\n");
-                    continue;
-                }
-                int user_id = Integer.parseInt(user_id_str);
-                if (!TestDriver.userExists(user_id)) {
-                    System.out.println("\nUser with id " + user_id + " does not exist.\n");
+                long user_id = TestDriver.inputUserID("Enter the user's ID: ");
+                if (user_id == -1) { continue; }
+
+                System.out.println();
+
+                TestDriver.displayFriends(user_id);
+            }
+            else if (command.equals("dropuser") || command.equals("12")) {
+                System.out.println("FUNCTION: dropUser()\n");
+
+                long user_id = TestDriver.inputUserID("Enter the user's ID: ");
+                if (user_id == -1) { continue; }
+
+                System.out.print("\nAre you sure you want to delete user " + user_id + "? " +
+                                 "Their data will be removed. (y/n) ");
+                String yn = TestDriver.scanner.nextLine().toLowerCase();
+
+                if (!yn.equals("y")) {
+                    // Abort if they did not enter 'y'
+                    System.out.println("Aborting. User " + user_id + " will not be deleted.\n");
                     continue;
                 }
                 
                 System.out.println();
 
-                TestDriver.displayFriends(user_id);
+                TestDriver.dropUser(user_id);
             }
             else if (command.equals("listusers") || command.equals("13")) {
                 TestDriver.listUsers();
@@ -542,7 +568,7 @@ public class Driver {
                 TestDriver.demo();
             }
             else {
-                System.out.println("Unknown command.\n");
+                System.out.println("ERROR: Unknown command.\n");
             }
         } // end while
 

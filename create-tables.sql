@@ -22,6 +22,7 @@ DROP TABLE Message;
 DROP TABLE FS_User;
 
 
+
 ------------------------------------------------------------------------------
 -- This section of code was written by: Benjamin Lind (bdl22)
 
@@ -48,6 +49,7 @@ BEGIN
 END;
 /
 
+
 PROMPT ----- CREATING FRIENDSHIP -----
 
 CREATE TABLE Friendship (
@@ -58,9 +60,11 @@ CREATE TABLE Friendship (
     date_established TIMESTAMP,
     CONSTRAINT Friendship_PK PRIMARY KEY (friendship_id),
     CONSTRAINT Friendship_FK_Initiator FOREIGN KEY (friend_initiator)
-        REFERENCES FS_User (user_id),
+        REFERENCES FS_User (user_id)
+        ON DELETE CASCADE,
     CONSTRAINT Friendship_FK_Receiver FOREIGN KEY (friend_receiver)
-        REFERENCES FS_User (user_id),
+        REFERENCES FS_User (user_id)
+        ON DELETE CASCADE,
     CONSTRAINT Friendship_Unique UNIQUE (friend_initiator, friend_receiver)
 );
 
@@ -125,6 +129,7 @@ BEGIN
 END;
 /
 
+
 PROMPT ----- CREATING GROUP_MEMBER -----
 
 CREATE TABLE Group_Member (
@@ -135,13 +140,12 @@ CREATE TABLE Group_Member (
         REFERENCES User_Group (group_id),
     CONSTRAINT user_id_fk FOREIGN KEY (user_id)
         REFERENCES FS_User (user_id)
+        ON DELETE CASCADE
 );
 
-
---Tries to count the number of records per group_id and compare it to enrollment limit
--- Group functions not allowed, neither are subqueries
+-- Trigger to ensure that groups do not go over their enrollment limits
 CREATE OR REPLACE TRIGGER check_enrollment
-BEFORE INSERT ON Group_Member
+BEFORE INSERT OR UPDATE ON Group_Member
 REFERENCING NEW AS newRow
 FOR EACH ROW
 DECLARE 
@@ -178,8 +182,8 @@ CREATE TABLE Message (
     message_id NUMBER(10),
     subject VARCHAR(254),
     body VARCHAR(100),
-    recipient NUMBER(10) NOT NULL,
-    sender NUMBER(10) NOT NULL,
+    recipient NUMBER(10),
+    sender NUMBER(10),
     date_sent TIMESTAMP,
     CONSTRAINT Message_PK PRIMARY KEY (message_id),
     CONSTRAINT Message_FK_recipient FOREIGN KEY (recipient)
@@ -187,7 +191,6 @@ CREATE TABLE Message (
     CONSTRAINT Message_FK_sender FOREIGN KEY (sender)
         REFERENCES FS_User (user_id)
 );
-
 
 -- Set up auto-incrementing for message IDs
 DROP SEQUENCE message_seq;
@@ -200,7 +203,9 @@ BEGIN
 END;
 /
 
--- Create trigger to check that sender and recipient are not the same.
+-- Create trigger to check that sender and recipient are not the same
+-- and not null. NOTE: sender and recipient might end up null if a user
+-- is deleted.
 CREATE OR REPLACE TRIGGER check_message_send_rec
 BEFORE INSERT ON Message
 REFERENCING NEW AS newRow
@@ -208,6 +213,26 @@ FOR EACH ROW
 BEGIN
     IF :newRow.sender = :newRow.recipient THEN
         raise_application_error(-20003, 'The sender and recipient for this message cannot be the same.');
+    ELSIF :newRow.sender IS NULL THEN
+        raise_application_error(-20004, 'The sender cannot be null.');
+    ELSIF :newRow.recipient IS NULL THEN
+        raise_application_error(-20005, 'The recipient cannot be null.');
     END IF;
+END;
+/
+
+
+
+-- When a user is deleted, update/delete their messages
+CREATE OR REPLACE TRIGGER delete_fs_user
+BEFORE DELETE ON FS_User
+FOR EACH ROW
+BEGIN
+    -- Set user to NULL in messages this user has sent/received
+    UPDATE Message SET sender = NULL WHERE sender = :old.user_id;
+    UPDATE Message SET recipient = NULL WHERE recipient = :old.user_id;
+
+    -- Delete any messages that have neither sender nor recipient
+    DELETE FROM Message WHERE sender IS NULL AND recipient IS NULL;
 END;
 /
