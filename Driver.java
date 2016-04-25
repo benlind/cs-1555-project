@@ -212,10 +212,10 @@ public class Driver {
         try {
             // Search all relevant fields for the query
             query = "SELECT user_id, name, email, dob FROM FS_User " +
-                "WHERE REGEXP_LIKE(user_id, ?) " +
-                "OR    REGEXP_LIKE(name,    ?) " +
-                "OR    REGEXP_LIKE(email,   ?) " +
-                "OR    REGEXP_LIKE(dob,     ?)";
+                "WHERE REGEXP_LIKE(user_id, ?, 'i') " +
+                "OR    REGEXP_LIKE(name,    ?, 'i') " +
+                "OR    REGEXP_LIKE(email,   ?, 'i') " +
+                "OR    REGEXP_LIKE(dob,     ?, 'i')";
 
             prep_statement = connection.prepareStatement(query);
             prep_statement.setString(1, tokens);
