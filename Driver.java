@@ -279,7 +279,100 @@ public class Driver {
         }
     }
 
+	public void createGroup(String name, String description, int membershipLimit) {
+        try {
+            query = "INSERT INTO User_Group (group_name, group_description, group_enroll_limit) "
+                + "VALUES (?, ?, ?)";
 
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setString(1, name);
+            prep_statement.setString(2, description);
+            prep_statement.setLong(3, membershipLimit);
+
+            prep_statement.executeUpdate();
+            connection.commit();
+            System.out.println("Created group '" + name + "'.\n");
+        }
+        catch (SQLException e) {
+            System.out.println("createGroup(): SQLException: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("createGroup(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }
+    }
+	
+    public void addToGroup(int user_id, int group_id){
+	    try {
+            query = "INSERT INTO Group_Member (group_id, user_id) "
+                + "VALUES (?, ?, ?)";
+
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setLong(1, group_id);
+            prep_statement.setLong(2, user_id);
+
+            prep_statement.executeUpdate();
+            connection.commit();
+            System.out.println("Added user " + user_id + " to group "+group_id+ ".\n");
+        }
+        catch (SQLException e) {
+            System.out.println("addToGroup(): SQLException: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("addToGroup(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }
+    }
+
+    public void topMessagers(int x, int k){
+	    try {
+            query = "Select case when sender is null then recipient else sender end as id,(nvl(sendCount,0)+nvl(recipientCount,0)) "+
+			"from (Select sender, count(*) as sendCount " +
+			"from (Select * from Message WHERE date_sent > CURRENT_DATE - INTERVAL ? MONTH ) " +
+                   "group by sender) " +
+	        "full outer join (Select recipient, count(*) as recipientCount " +
+	                          "from (Select * from Message where date_sent > CURRENT_DATE - INTERVAL ? MONTH) " +
+							  "group by recipient) " +
+	        "on sender = recipient " +
+			"order by (nvl(sendCount,0)+nvl(recipientCount,0)) desc " +
+	        "where rownum <= ?;";
+			
+			String xString = "" + x;
+
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setString(1, xString);
+            prep_statement.setString(2, xString);
+			prep_statement.setLong(3, k);
+
+            result_set = prep_statement.executeQuery();
+			System.out.println("Top messagers ids and message counts: ");
+            while (result_set.next()) {
+                System.out.println(""
+                                   + result_set.getLong(1) + ", "
+                                   + result_set.getLong(2) + ", "
+                                  );
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("topMessagers(): SQLException: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("topMessagers(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }
+    }
 
 
     /***** HELPER FUNCTIONS *****/
