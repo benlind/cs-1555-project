@@ -279,7 +279,7 @@ public class Driver {
         }
     }
 
-	public void createGroup(String name, String description, int membershipLimit) {
+	public void createGroup(String name, String description, long membershipLimit) {
         try {
             query = "INSERT INTO User_Group (group_name, group_description, group_enroll_limit) "
                 + "VALUES (?, ?, ?)";
@@ -306,7 +306,7 @@ public class Driver {
         }
     }
 	
-    public void addToGroup(int user_id, int group_id){
+    public void addToGroup(long group_id, long user_id){
 	    try {
             query = "INSERT INTO Group_Member (group_id, user_id) "
                 + "VALUES (?, ?, ?)";
@@ -332,7 +332,7 @@ public class Driver {
         }
     }
 
-    public void topMessagers(int x, int k){
+    public void topMessagers(long x, long k){
 	    try {
             query = "Select case when sender is null then recipient else sender end as id,(nvl(sendCount,0)+nvl(recipientCount,0)) "+
 			"from (Select sender, count(*) as sendCount " +
@@ -509,7 +509,7 @@ public class Driver {
         }
         return user_id;
     }
-
+	
     public boolean userExists(long user_id) {
         boolean exists = false;
         try {
@@ -536,7 +536,50 @@ public class Driver {
         }
         return exists;
     }
-            
+    
+	public long inputGroupID(String prompt){
+		System.out.print(prompt);
+        String group_id_str = scanner.nextLine();
+        if (!isInteger(user_id_str)) {
+            System.out.println("\nERROR: Invalid ID (must be an integer)\n");
+            return -1;
+        }
+        
+        long group_id = Integer.parseInt(group_id_str);
+        if (!groupExists(group_id)) {
+            System.out.println("\nERROR: Group with id " + group_id + " does not exist.\n");
+            return -1;
+        }
+        return group_id;
+	}
+	
+	 public boolean groupExists(long group_id) {
+        boolean exists = false;
+        try {
+            query = "SELECT group_id FROM User_Group WHERE group_id = ?";
+
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setLong(1, group_id);
+            result_set = prep_statement.executeQuery();
+
+            if (result_set.next()) {
+                exists = true;
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("groupExists(): Error running SQL: " + e.toString());
+        }
+        finally {
+            try {
+                if (prep_statement != null) prep_statement.close();
+            }
+            catch (SQLException e) {
+                System.out.println("groupExists(): Cannot close Statement. Machine error: " + e.toString());
+            }
+        }
+        return exists;
+    }
+	
     public static boolean isInteger(String str) {
         try { int d = Integer.parseInt(str); }
         catch (NumberFormatException nfe) { return false; }
@@ -575,10 +618,14 @@ public class Driver {
                     + "\t(2) initiateFriendship\n"
                     + "\t(3) establishFriendship\n"
                     + "\t(4) displayFriends\n"
+					+ "\t(5) createGroup\n"
+					+ "\t(6) addToGroup\n"
                     + "\t(9) searchForUser\n"
+					+ "\t(11) topMessagers\n"
                     + "\t(12) dropUser\n"
                     + "\t(13) listUsers\n"
-                    + "\t(14) listFriendships\n");
+                    + "\t(14) listFriendships\n"
+                    );
 
                 showHelp = false;
             }
@@ -682,6 +729,59 @@ public class Driver {
 
                 TestDriver.displayFriends(user_id);
             }
+			else if (command.equals("creategroup") || command.equals("5")){
+				System.out.println("FUNCTION: createGroup()\n");
+				
+				System.out.print("Enter a group name: ");
+				String groupName = TestDriver.scanner.nextLine().trim();
+				if (groupName.isEmpty()) {
+                    System.out.println("\nERROR: You must enter a group name.\n");
+                    continue;
+                }
+                else if (groupName.length() > 64) {
+                    System.out.println("\nERROR: Name cannot be more than 64 characters.\n");
+                    continue;
+                }
+				
+				System.out.print("Enter a group description: ");
+				String groupDescription = TestDriver.scanner.nextLine().trim();
+				if (groupDescription.isEmpty()) {
+                    System.out.println("\nERROR: You must enter a group description.\n");
+                    continue;
+                }
+                else if (name.length() > 160) {
+                    System.out.println("\nERROR: Description cannot be more than 160 characters.\n");
+                    continue;
+                }
+				
+			    System.out.print("Enter a group enrollment limit: ");
+				long groupEnrollLimit = TestDriver.scanner.nextLong();
+				if (groupEnrollLimit <= 0)) {
+                    System.out.println("\nERROR: Enroll limit must be greater than 0.\n");
+                    continue;
+                }
+                else if (groupEnrollLimit) > 999999) {
+                    System.out.println("\nERROR: Enroll limit cannot be greater than 999999.\n");
+                    continue;
+                }
+				
+				System.out.println();
+
+                TestDriver.createGroup(groupName, groupDescription, groupEnrollLimit);
+			}
+			else if (command.equals("addtogroup") || command.equals("6")) {
+                System.out.println("FUNCTION: addToGroup()\n");
+
+                long group_id = TestDriver.inputGroupID("Enter the group ID: ");
+                if (initiator_id == -1) { continue; }
+
+                long user_id = TestDriver.inputUserID("Enter the user ID: ");
+                if (receiver_id == -1) { continue; }
+
+                System.out.println();
+
+                TestDriver.addToGroup(group_id, user_id);
+            }
             else if (command.equals("searchforuser") || command.equals("9")) {
                 System.out.println("FUNCTION: searchForUser()\n");
 
@@ -696,6 +796,27 @@ public class Driver {
                 System.out.println();
 
                 TestDriver.searchForUser(search_str);
+            }
+			else if (command.equals("topmessagers") || command.equals("11")) {
+                System.out.println("FUNCTION: topMessagers()\n");
+				
+				System.out.print("Enter number of results to get back: ");
+                long k = TestDriver.scanner.nextLong();
+                if(k < 0){
+					System.out.println("Error: Must be greater than or equal to 0.\n");
+					continue;
+				}
+
+                System.out.print("Enter number of months to include: ");
+                long x = TestDriver.scanner.nextLong();
+                if(x < 1){
+					System.out.println("Error: Must be greater than or equal to 1.\n");
+					continue;
+				}
+
+                System.out.println();
+
+                TestDriver.topMessagers(k, x);
             }
             else if (command.equals("dropuser") || command.equals("12")) {
                 System.out.println("FUNCTION: dropUser()\n");
