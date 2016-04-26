@@ -756,11 +756,11 @@ public class Driver {
 				
 			    System.out.print("Enter a group enrollment limit: ");
 				long groupEnrollLimit = TestDriver.scanner.nextLong();
-				if (groupEnrollLimit <= 0)) {
+				if (groupEnrollLimit <= 0) {
                     System.out.println("\nERROR: Enroll limit must be greater than 0.\n");
                     continue;
                 }
-                else if (groupEnrollLimit) > 999999) {
+                else if (groupEnrollLimit > 999999) {
                     System.out.println("\nERROR: Enroll limit cannot be greater than 999999.\n");
                     continue;
                 }
