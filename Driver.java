@@ -540,7 +540,7 @@ public class Driver {
 	public long inputGroupID(String prompt){
 		System.out.print(prompt);
         String group_id_str = scanner.nextLine();
-        if (!isInteger(user_id_str)) {
+        if (!isInteger(group_id_str)) {
             System.out.println("\nERROR: Invalid ID (must be an integer)\n");
             return -1;
         }
@@ -749,7 +749,7 @@ public class Driver {
                     System.out.println("\nERROR: You must enter a group description.\n");
                     continue;
                 }
-                else if (name.length() > 160) {
+                else if (groupDescription.length() > 160) {
                     System.out.println("\nERROR: Description cannot be more than 160 characters.\n");
                     continue;
                 }
@@ -773,10 +773,10 @@ public class Driver {
                 System.out.println("FUNCTION: addToGroup()\n");
 
                 long group_id = TestDriver.inputGroupID("Enter the group ID: ");
-                if (initiator_id == -1) { continue; }
+                if (group_id == -1) { continue; }
 
                 long user_id = TestDriver.inputUserID("Enter the user ID: ");
-                if (receiver_id == -1) { continue; }
+                if (user_id == -1) { continue; }
 
                 System.out.println();
 
