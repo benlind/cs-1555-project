@@ -38,6 +38,8 @@ def main():
     message_sql = random_message_sql(num_messages, num_users)
     sql += message_sql
 
+    sql += ["COMMIT;"]
+
     final_sql = "\n".join(sql)
 
     sql_file = open('add-test-data.sql', 'w')

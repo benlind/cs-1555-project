@@ -374,6 +374,52 @@ public class Driver {
         }
     }
 
+    public void sendMessageToUser(String subject, String body, long recipient, long sender) {
+      query = "INSERT INTO Message (subject, body, recipient, sender, date_sent) VALUES (?, ?, ?, ?, ?)";
+
+      java.util.Date utilDate = new java.util.Date();
+      Date dob = new Date(utilDate.getTime());
+
+      try {
+        prep_statement = connection.prepareStatement(query);
+        prep_statement.setString(1, subject);
+        prep_statement.setString(2, body);
+        prep_statement.setLong(3, recipient);
+        prep_statement.setLong(4, sender);
+        prep_statement.setDate(5, dob);
+
+        prep_statement.executeUpdate();
+        connection.commit();
+        System.out.println("Message sent to user ID '" + recipient + "'.\n");
+      }
+      catch (SQLException e) {
+        System.out.println("sendMessageToUser(): SQLException: " + e.toString());
+      }
+    }
+
+    public void displayMessages(long recipient) {
+      query = "SELECT * FROM Message m INNER JOIN FS_USER u ON m.sender = u.user_id WHERE m.recipient = ? ORDER BY m.date_sent ASC";
+
+      try {
+        prep_statement = connection.prepareStatement(query);
+        prep_statement.setLong(1, recipient);
+
+        result_set = prep_statement.executeQuery();
+        while (result_set.next()) {
+          System.out.println("Message ID " + result_set.getLong("message_id"));
+          System.out.println("-----------------------------------");
+          System.out.println("Sender: " + result_set.getString("name") + " <" + result_set.getString("email") + ">");
+          System.out.println("Date Sent: " + result_set.getDate("date_sent"));
+          System.out.println("");
+          System.out.println(" | " + result_set.getString("body"));
+          System.out.println("");
+        }
+      }
+      catch (SQLException e) {
+        System.out.println("displayMessages(): SQLException: " + e.toString());
+      }
+    }
+
 
     /***** HELPER FUNCTIONS *****/
 
@@ -618,10 +664,12 @@ public class Driver {
                     + "\t(2) initiateFriendship\n"
                     + "\t(3) establishFriendship\n"
                     + "\t(4) displayFriends\n"
-					+ "\t(5) createGroup\n"
-					+ "\t(6) addToGroup\n"
+                    + "\t(5) createGroup\n"
+                    + "\t(6) addToGroup\n"
+                    + "\t(7) sendMessageToUser\n"
+                    + "\t(8) displayMessages\n"
                     + "\t(9) searchForUser\n"
-					+ "\t(11) topMessagers\n"
+                    + "\t(11) topMessagers\n"
                     + "\t(12) dropUser\n"
                     + "\t(13) listUsers\n"
                     + "\t(14) listFriendships\n"
@@ -797,6 +845,32 @@ public class Driver {
 
                 TestDriver.searchForUser(search_str);
             }
+      else if (command.equals("sendmessagetouser") || command.equals("7")) {
+        System.out.println("FUNCTION: sendMessageToUser()\n");
+
+        System.out.println("Enter a subject: ");
+        String subject = TestDriver.scanner.nextLine();
+
+        System.out.println("Enter a message: ");
+        String message = TestDriver.scanner.nextLine();
+
+        long recipient_id = TestDriver.inputUserID("Enter the ID of the recipient user: ");
+        if (recipient_id == -1) { continue; }
+
+        long sender_id = TestDriver.inputUserID("Enter your user ID: ");
+        if (sender_id == -1) { continue; }
+
+        TestDriver.sendMessageToUser(subject, message, recipient_id, sender_id);
+      }
+      else if (command.equals("displaymessages") || command.equals("8")) {
+        System.out.println("FUNCTION: displayMessages()\n");
+
+        long recipient_id = TestDriver.inputUserID("Enter your user ID: ");
+        if (recipient_id == -1) { continue; }
+
+        System.out.println("");
+        TestDriver.displayMessages(recipient_id);
+      }
 			else if (command.equals("topmessagers") || command.equals("11")) {
                 System.out.println("FUNCTION: topMessagers()\n");
 				
