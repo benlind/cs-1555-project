@@ -108,7 +108,7 @@ public class Driver {
 		
         //three connections
         System.out.println("Check for mutual friends (three degrees)\n");
-        threeDegrees(0,1)
+        threeDegrees(0,1);
 		
         //show top messagers
         System.out.println("Get top 5 messagers in the last 6 months\n");
