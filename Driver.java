@@ -69,38 +69,40 @@ public class Driver {
         createUser("Mutual User", "mutual@user.com", dob);
 		
         //initiate friendship
-        System.out.println("Initiate friendship between user 0 and user 1\n");
-        initiateFriendship(0, 1);
+        System.out.println("Initiate friendship between user 1 and user 2\n");
+        initiateFriendship(1,2);
 		
         //establishFriendship
-        System.out.println("Establish friendship between user 0 and user 1\n");
-        establishFriendship(0,1);
-
-        System.out.println("Establish mutual friendship between user 0 and user 1 with user 2\n");
-        establishFriendship(0,2);
+        System.out.println("Establish friendship between user 1 and user 2\n");
         establishFriendship(1,2);
+
+        System.out.println("Establish mutual friendship between user 1 and user 2 with user 3\n");
+        initiateFriendship(1,3);
+        establishFriendship(1,3);
+        initiateFriendship(2,3);
+        establishFriendship(2,3);
 		
         //display friends
-        System.out.println("Display friends of user 0\n");
-        displayFriends(0);
+        System.out.println("Display friends of user 1\n");
+        displayFriends(1);
 		
         //create group
         System.out.println("Create a test group of enrollment limit 1\n");
         createGroup("Test Group", "This group is for testing purposes", 1);
 		
         //add to group
-        System.out.println("Add user 0 to test group\n");
-        addToGroup(0,0);
         System.out.println("Add user 1 to test group\n");
-        addToGroup(0,1);
+        addToGroup(1,1);
+        System.out.println("Add user 2 to test group\n");
+        addToGroup(1,2);
 		
         //send message
-        System.out.println("Send a test message from user 0 to user 1\n");
-        sendMessageToUser("Test message", "This message is a test", 1, 0);
+        System.out.println("Send a test message from user 1 to user 2\n");
+        sendMessageToUser("Test message", "This message is a test", 2, 1);
 		
         //display messages
-        System.out.println("Display the messages of user 1\n");
-        displayMessages(1);
+        System.out.println("Display the messages of user 2\n");
+        displayMessages(2);
 		
         //search for user
         System.out.println("Search for the string \"Test User another@user.com\"\n");
@@ -108,15 +110,15 @@ public class Driver {
 		
         //three connections
         System.out.println("Check for mutual friends (three degrees)\n");
-        threeDegrees(0,1);
+        threeDegrees(1,2);
 		
         //show top messagers
         System.out.println("Get top 5 messagers in the last 6 months\n");
         topMessagers(6,5);
 		
         //drop user
-        System.out.println("Drop user 0\n");
-        dropUser(0);
+        System.out.println("Drop user 1\n");
+        dropUser(1);
 		
         //list users
         System.out.println("List all users\n");
