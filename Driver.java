@@ -58,6 +58,58 @@ public class Driver {
             return;
         }
         createUser("Another User", "another@user.com", dob);
+		
+		//initiate friendship
+		System.out.println("Initiate friendship between user 0 and user 1\n");
+		initiateFriendship(0, 1);
+		
+		//establishFriendship
+		System.out.println("Establish friendship between user 0 and user 1\n");
+		establishFriendship(0,1);
+		
+		//display friends
+		System.out.println("Display friends of user 0\n");
+		displayFriends(0);
+		
+		//create group
+		System.out.println("Create a test group of enrollment limit 1\n");
+		createGroup("Test Group", "This group is for testing purposes", 1);
+		
+		//add to group
+		System.out.println("Add user 0 to test group\n");
+		addToGroup(0,0);
+		System.out.println("Add user 1 to test group\n");
+		addToGroup(0,1);
+		
+		//send message
+		System.out.println("Send a test message from user 0 to user 1\n");
+		sendMessageToUser("Test message", "This message is a test", 1, 0);
+		
+		//display messages
+		System.out.println("Display the messages of user 1\n");
+		displayMessages(1);
+		
+		//search for user
+		System.out.println("Search for the string \"Test User another@user.com\"\n");
+		searchForUser("Test User another@user.com");
+		
+		//three connections
+		
+		//show top messagers
+		System.out.println("Get top 5 messagers in the last 6 months\n");
+		topMessagers(6,5);
+		
+		//drop user
+		System.out.println("Drop user 0\n");
+		dropUser(0);
+		
+		//list users
+		System.out.println("List all users\n");
+		listUsers();
+		
+		//list friendships
+		System.out.println("List all friendships\n");
+		listFriendships();
     }
 
     public void createUser(String name, String email, Date dob) {
@@ -309,7 +361,7 @@ public class Driver {
     public void addToGroup(long group_id, long user_id){
 	    try {
             query = "INSERT INTO Group_Member (group_id, user_id) "
-                + "VALUES (?, ?, ?)";
+                  + "VALUES (?, ?, ?)";
 
             prep_statement = connection.prepareStatement(query);
             prep_statement.setLong(1, group_id);
@@ -335,25 +387,25 @@ public class Driver {
     public void topMessagers(long x, long k){
 	    try {
             query = "Select case when sender is null then recipient else sender end as id,(nvl(sendCount,0)+nvl(recipientCount,0)) "+
-			"from (Select sender, count(*) as sendCount " +
-			"from (Select * from Message WHERE date_sent > CURRENT_DATE - INTERVAL ? MONTH ) " +
+		    "from (Select sender, count(*) as sendCount " +
+		    "from (Select * from Message WHERE date_sent > CURRENT_DATE - INTERVAL ? MONTH ) " +
                    "group by sender) " +
 	        "full outer join (Select recipient, count(*) as recipientCount " +
 	                          "from (Select * from Message where date_sent > CURRENT_DATE - INTERVAL ? MONTH) " +
 							  "group by recipient) " +
 	        "on sender = recipient " +
-			"order by (nvl(sendCount,0)+nvl(recipientCount,0)) desc " +
+		    "order by (nvl(sendCount,0)+nvl(recipientCount,0)) desc " +
 	        "where rownum <= ?;";
 			
-			String xString = "" + x;
+		    String xString = "" + x;
 
             prep_statement = connection.prepareStatement(query);
             prep_statement.setString(1, xString);
             prep_statement.setString(2, xString);
-			prep_statement.setLong(3, k);
+		    prep_statement.setLong(3, k);
 
             result_set = prep_statement.executeQuery();
-			System.out.println("Top messagers ids and message counts: ");
+		    System.out.println("Top messagers ids and message counts: ");
             while (result_set.next()) {
                 System.out.println(""
                                    + result_set.getLong(1) + ", "
