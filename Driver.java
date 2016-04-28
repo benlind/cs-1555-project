@@ -58,6 +58,15 @@ public class Driver {
             return;
         }
         createUser("Another User", "another@user.com", dob);
+
+        try {
+            dob = new Date(ymd_format.parse("1994-01-01").getTime());
+        }
+        catch (ParseException e) {
+            System.out.println("Invalid date.");
+            return;
+        }
+        createUser("Mutual User", "mutual@user.com", dob);
 		
         //initiate friendship
         System.out.println("Initiate friendship between user 0 and user 1\n");
@@ -66,6 +75,10 @@ public class Driver {
         //establishFriendship
         System.out.println("Establish friendship between user 0 and user 1\n");
         establishFriendship(0,1);
+
+        System.out.println("Establish mutual friendship between user 0 and user 1 with user 2\n");
+        establishFriendship(0,2);
+        establishFriendship(1,2);
 		
         //display friends
         System.out.println("Display friends of user 0\n");
@@ -93,7 +106,9 @@ public class Driver {
         System.out.println("Search for the string \"Test User another@user.com\"\n");
         searchForUser("Test User another@user.com");
 		
-       //three connections
+        //three connections
+        System.out.println("Check for mutual friends (three degrees)\n");
+        threeDegrees(0,1)
 		
         //show top messagers
         System.out.println("Get top 5 messagers in the last 6 months\n");
