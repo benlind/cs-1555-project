@@ -110,8 +110,49 @@ public class Driver {
         searchForUser("Test User another@user.com");
 		
         //three connections
+	    System.out.println("Creating users to make various degrees of connection\n");
+		
+        try {
+            dob = new Date(ymd_format.parse("1994-04-13").getTime());
+        }
+        catch (ParseException e) {
+            System.out.println("Invalid date.");
+            return;
+        }
+        createUser("Bob Joe", "bobjoe@user.com", dob);
+		
+		try {
+            dob = new Date(ymd_format.parse("1994-04-13").getTime());
+        }
+        catch (ParseException e) {
+            System.out.println("Invalid date.");
+            return;
+        }
+        createUser("Ann Perkins", "annperkins@user.com", dob);
+		
+		try {
+            dob = new Date(ymd_format.parse("1994-04-13").getTime());
+        }
+        catch (ParseException e) {
+            System.out.println("Invalid date.");
+            return;
+        }
+        createUser("Mary Sue", "marysue@user.com", dob);
+		
+	    initiateFriendship(4,3);
+        establishFriendship(4,3);
+		
+	    initiateFriendship(4,5);
+        establishFriendship(4,5);
+		
+	    initiateFriendship(5,6);
+        establishFriendship(5,6);
+		
         System.out.println("Check for mutual friends (three degrees)\n");
-        threeDegrees(1,2);
+        threeDegrees(1,2);//friends - 1 degree
+		threeDegrees(1,4);//mutual friend - 2 degrees
+		threeDegrees(1,5);//3 degrees
+		threeDegrees(1,6);//more than 3 degrees
 		
         //show top messagers
         System.out.println("Get top 5 messagers in the last 6 months\n");
