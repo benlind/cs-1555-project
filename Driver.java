@@ -420,7 +420,7 @@ public class Driver {
     public void addToGroup(long group_id, long user_id){
 	    try {
             query = "INSERT INTO Group_Member (group_id, user_id) "
-                  + "VALUES (?, ?, ?)";
+                  + "VALUES (?, ?)";
 
             prep_statement = connection.prepareStatement(query);
             prep_statement.setLong(1, group_id);
@@ -443,20 +443,23 @@ public class Driver {
         }
     }
 
+    /**
+     * Author: alg161
+     */
     public void topMessagers(long x, long k){
 	    try {
-            query = "Select case when sender is null then recipient else sender end as id,(nvl(sendCount,0)+nvl(recipientCount,0)) "+
-		    "from (Select sender, count(*) as sendCount " +
-		    "from (Select * from Message WHERE date_sent > CURRENT_DATE - INTERVAL ? MONTH ) " +
-                   "group by sender) " +
-	        "full outer join (Select recipient, count(*) as recipientCount " +
-	                          "from (Select * from Message where date_sent > CURRENT_DATE - INTERVAL ? MONTH) " +
-							  "group by recipient) " +
-	        "on sender = recipient " +
-		    "order by (nvl(sendCount,0)+nvl(recipientCount,0)) desc " +
-	        "where rownum <= ?;";
+            query = "SELECT CASE WHEN sender IS NULL THEN recipient ELSE sender END AS id, (nvl(sendCount,0) + nvl(recipientCount,0)) "+
+                    "from (Select sender, count(*) as sendCount " +
+                        "from (Select * from Message WHERE date_sent > ADD_MONTHS(CURRENT_DATE, ?) " +
+                        "group by sender) " +
+                    "full outer join (Select recipient, count(*) as recipientCount " +
+                        "from (Select * from Message where date_sent > ADD_MONTHS(CURRENT_DATE, ?)) " +
+                        "group by recipient) " +
+                    "on sender = recipient " +
+                    "order by (nvl(sendCount,0)+nvl(recipientCount,0)) desc " +
+                    "where rownum <= ?";
 			
-		    String xString = "" + x;
+		    String xString = "-" + x;
 
             prep_statement = connection.prepareStatement(query);
             prep_statement.setString(1, xString);
@@ -466,10 +469,8 @@ public class Driver {
             result_set = prep_statement.executeQuery();
 		    System.out.println("Top messagers ids and message counts: ");
             while (result_set.next()) {
-                System.out.println(""
-                                   + result_set.getLong(1) + ", "
-                                   + result_set.getLong(2) + ", "
-                                  );
+                System.out.println(result_set.getLong(1) + ", "
+                                   + result_set.getLong(2));
             }
         }
         catch (SQLException e) {
@@ -486,49 +487,49 @@ public class Driver {
     }
 
     public void sendMessageToUser(String subject, String body, long recipient, long sender) {
-      query = "INSERT INTO Message (subject, body, recipient, sender, date_sent) VALUES (?, ?, ?, ?, ?)";
+        query = "INSERT INTO Message (subject, body, recipient, sender, date_sent) VALUES (?, ?, ?, ?, ?)";
 
-      java.util.Date utilDate = new java.util.Date();
-      Date dob = new Date(utilDate.getTime());
+        java.util.Date utilDate = new java.util.Date();
+        Date dob = new Date(utilDate.getTime());
 
-      try {
-        prep_statement = connection.prepareStatement(query);
-        prep_statement.setString(1, subject);
-        prep_statement.setString(2, body);
-        prep_statement.setLong(3, recipient);
-        prep_statement.setLong(4, sender);
-        prep_statement.setDate(5, dob);
+        try {
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setString(1, subject);
+            prep_statement.setString(2, body);
+            prep_statement.setLong(3, recipient);
+            prep_statement.setLong(4, sender);
+            prep_statement.setDate(5, dob);
 
-        prep_statement.executeUpdate();
-        connection.commit();
-        System.out.println("Message sent to user ID '" + recipient + "'.\n");
-      }
-      catch (SQLException e) {
-        System.out.println("sendMessageToUser(): SQLException: " + e.toString());
-      }
+            prep_statement.executeUpdate();
+            connection.commit();
+            System.out.println("Message sent to user ID '" + recipient + "'.\n");
+        }
+        catch (SQLException e) {
+            System.out.println("sendMessageToUser(): SQLException: " + e.toString());
+        }
     }
 
     public void displayMessages(long recipient) {
-      query = "SELECT * FROM Message m INNER JOIN FS_USER u ON m.sender = u.user_id WHERE m.recipient = ? ORDER BY m.date_sent ASC";
+        query = "SELECT * FROM Message m INNER JOIN FS_USER u ON m.sender = u.user_id WHERE m.recipient = ? ORDER BY m.date_sent ASC";
 
-      try {
-        prep_statement = connection.prepareStatement(query);
-        prep_statement.setLong(1, recipient);
+        try {
+            prep_statement = connection.prepareStatement(query);
+            prep_statement.setLong(1, recipient);
 
-        result_set = prep_statement.executeQuery();
-        while (result_set.next()) {
-          System.out.println("Message ID " + result_set.getLong("message_id"));
-          System.out.println("-----------------------------------");
-          System.out.println("Sender: " + result_set.getString("name") + " <" + result_set.getString("email") + ">");
-          System.out.println("Date Sent: " + result_set.getDate("date_sent"));
-          System.out.println("");
-          System.out.println(" | " + result_set.getString("body"));
-          System.out.println("");
+            result_set = prep_statement.executeQuery();
+            while (result_set.next()) {
+                System.out.println("Message ID " + result_set.getLong("message_id"));
+                System.out.println("-----------------------------------");
+                System.out.println("Sender: " + result_set.getString("name") + " <" + result_set.getString("email") + ">");
+                System.out.println("Date Sent: " + result_set.getDate("date_sent"));
+                System.out.println("");
+                System.out.println(" | " + result_set.getString("body"));
+                System.out.println("");
+            }
         }
-      }
-      catch (SQLException e) {
-        System.out.println("displayMessages(): SQLException: " + e.toString());
-      }
+        catch (SQLException e) {
+            System.out.println("displayMessages(): SQLException: " + e.toString());
+        }
     }
 
    /* public void threeDegrees(long first, long second) {
@@ -565,26 +566,31 @@ public class Driver {
         System.out.println("threeDegrees(): SQLException: " + e.toString());
       }
     }*/
-	
-	public void threeDegrees(long first, long second) {
-	      String query = "SELECT user_id FROM FS_User WHERE (user_id IN (SELECT friend_receiver FROM Friendship WHERE friend_initiator = ? AND established = 1) " +
-	                           "OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1))";
-	      String query_user = "SELECT * FROM FS_User WHERE user_id = ?";
 
-	      try {
+    /**
+     * Author: fba4
+     */
+	public void threeDegrees(long first, long second) {
+        String query = "SELECT user_id FROM FS_User WHERE (user_id IN (SELECT friend_receiver FROM Friendship WHERE friend_initiator = ? AND established = 1) " +
+            "OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1))";
+        String query_user = "SELECT * FROM FS_User WHERE user_id = ?";
+
+        try {
 	        PreparedStatement prep_statement_f = connection.prepareStatement(query_user);
 	        prep_statement_f.setLong(1, first);
 	        ResultSet result_f = prep_statement_f.executeQuery();
 	        result_f.next();
 	        String name_f = result_f.getString("name");
+	        long id_f = result_f.getLong("user_id");
 
 	        PreparedStatement prep_statement_s = connection.prepareStatement(query_user);
 	        prep_statement_s.setLong(1, second);
 	        ResultSet result_s = prep_statement_s.executeQuery();
 	        result_s.next();
 	        String name_s = result_s.getString("name");
+	        long id_s = result_s.getLong("user_id");
 
-	       PreparedStatement prep_statement_first = connection.prepareStatement(query);
+            PreparedStatement prep_statement_first = connection.prepareStatement(query);
 	        prep_statement_first.setLong(1, first);
 	        prep_statement_first.setLong(2, first);
 	       
@@ -592,12 +598,13 @@ public class Driver {
 	        ResultSet result_set_first = prep_statement_first.executeQuery();
 			ArrayList <Long> firstFriends= new ArrayList<Long>();
 	        while (result_set_first.next()) {
-	          firstFriends.add(result_set_first.getLong("user_id"));
+                firstFriends.add(result_set_first.getLong("user_id"));
 	        }
 			result_set_first.close();
 			
 			if(firstFriends.contains(second)){
-				System.out.println("" + name_f + " - " + name_s + "\n");
+				System.out.println(name_f + " (" + id_f + ")" + " - " +
+                                   name_s + " (" + id_s + ")\n");
 				return;
 			}
 			
@@ -610,7 +617,7 @@ public class Driver {
 	        ResultSet result_set_second = prep_statement_second.executeQuery();
 			ArrayList <Long> secondFriends= new ArrayList<Long>();
 	        while (result_set_second.next()) {
-	          secondFriends.add(result_set_second.getLong("user_id"));
+                secondFriends.add(result_set_second.getLong("user_id"));
 	        }
 	        result_set_second.close();
 	        
@@ -621,8 +628,17 @@ public class Driver {
 	    	        ResultSet result_mutual = prep_statement_s.executeQuery();
 	    	        result_mutual.next();
 	    	        String name_mutual = result_mutual.getString("name");
+	    	        long id_mutual = result_mutual.getLong("user_id");
 	    	        result_mutual.close();
-					System.out.println("" + name_f + " - " + name_mutual + " - "+ name_s + "\n");
+                    if (id_mutual == id_s) {
+                        System.out.println(name_f + " (" + id_f + ")" + " - " +
+                                           name_s + " (" + id_s + ")\n");
+                    }
+                    else {
+                        System.out.println(name_f + " (" + id_f + ")" + " - " +
+                                           name_mutual + " (" + id_mutual + ")" + " - "+
+                                           name_s + " (" + id_s + ")\n");
+                    }
 					return;
 				}
 	        }
@@ -637,7 +653,7 @@ public class Driver {
 		        ResultSet result_set_temp = prep_statement_temp.executeQuery();
 				ArrayList <Long> tempFriends= new ArrayList<Long>();
 		        while (result_set_temp.next()) {
-		          tempFriends.add(result_set_temp.getLong("user_id"));
+                    tempFriends.add(result_set_temp.getLong("user_id"));
 		        }
 		        result_set_temp.close();
 		        
@@ -648,6 +664,7 @@ public class Driver {
 		    	        ResultSet result_link1 = prep_statement_link1.executeQuery();
 		    	        result_link1.next();
 		    	        String name_link1 = result_link1.getString("name");
+		    	        long id_link1 = result_link1.getLong("user_id");
 		    	        result_link1.close();
 		    	        
 		        		PreparedStatement prep_statement_link2 = connection.prepareStatement(query_user);
@@ -655,19 +672,20 @@ public class Driver {
 		    	        ResultSet result_link2 = prep_statement_link2.executeQuery();
 		    	        result_link2.next();
 		    	        String name_link2 = result_link2.getString("name");
+		    	        long id_link2 = result_link2.getLong("user_id");
 		    	        result_link2.close();
 		    	        
-						System.out.println("" + name_f + " - " + name_link1 + " - " + name_link2 + " - "+ name_s + "\n");
+						System.out.println(name_f + " (" + id_f + ")" + " - " + name_link1 + " (" + id_link1 + ")" + " - " + name_link2 + " (" + id_link2 + ")" + " - "+ name_s + " (" + id_s + ")\n");
 						return;
 					}
 		        }
 	        }
 	        
 	        System.out.println("No connection of 3 degrees or less between users\n");
-	      }
-	      catch (SQLException e) {
+        }
+        catch (SQLException e) {
 	        System.out.println("threeDegrees(): SQLException: " + e.toString());
-	      }
+        }
 	}
 
 
