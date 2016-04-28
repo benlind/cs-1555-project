@@ -472,6 +472,41 @@ public class Driver {
       }
     }
 
+    public void threeDegrees(long first, long second) {
+      query = "SELECT * FROM FS_User WHERE (user_id IN (SELECT friend_receiver FROM Friendship WHERE friend_initiator = ? AND established = 1) OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1)) AND (user_id IN (SELECT friend_receiver FROM Friendship  WHERE friend_initiator = ? AND established = 1) OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1))";
+      String query_user = "SELECT * FROM FS_User WHERE user_id = ?";
+
+      try {
+        PreparedStatement prep_statement_f = connection.prepareStatement(query_user);
+        prep_statement_f.setLong(1, first);
+        ResultSet result_f = prep_statement_f.executeQuery();
+        result_f.next();
+        String name_f = result_f.getString("name");
+
+        PreparedStatement prep_statement_s = connection.prepareStatement(query_user);
+        prep_statement_s.setLong(1, second);
+        ResultSet result_s = prep_statement_s.executeQuery();
+        result_s.next();
+        String name_s = result_s.getString("name");
+
+        prep_statement = connection.prepareStatement(query);
+        prep_statement.setLong(1, first);
+        prep_statement.setLong(2, first);
+        prep_statement.setLong(3, second);
+        prep_statement.setLong(4, second);
+
+        result_set = prep_statement.executeQuery();
+        int n = 1;
+        while (result_set.next()) {
+          System.out.println(n + ": " + name_f + " - " + result_set.getString(2) + " - " + name_s);
+          n++;
+        }
+      }
+      catch (SQLException e) {
+        System.out.println("threeDegrees(): SQLException: " + e.toString());
+      }
+    }
+
 
     /***** HELPER FUNCTIONS *****/
 
@@ -712,15 +747,16 @@ public class Driver {
                     + "\t(q) quit\n"
                     + "\t(h) help\n"
                     + "\t(d) demo\n"
-                    + "\t(1) createUser\n"
-                    + "\t(2) initiateFriendship\n"
-                    + "\t(3) establishFriendship\n"
-                    + "\t(4) displayFriends\n"
-                    + "\t(5) createGroup\n"
-                    + "\t(6) addToGroup\n"
-                    + "\t(7) sendMessageToUser\n"
-                    + "\t(8) displayMessages\n"
-                    + "\t(9) searchForUser\n"
+                    + "\t(1)  createUser\n"
+                    + "\t(2)  initiateFriendship\n"
+                    + "\t(3)  establishFriendship\n"
+                    + "\t(4)  displayFriends\n"
+                    + "\t(5)  createGroup\n"
+                    + "\t(6)  addToGroup\n"
+                    + "\t(7)  sendMessageToUser\n"
+                    + "\t(8)  displayMessages\n"
+                    + "\t(9)  searchForUser\n"
+                    + "\t(10) threeDegrees\n"
                     + "\t(11) topMessagers\n"
                     + "\t(12) dropUser\n"
                     + "\t(13) listUsers\n"
@@ -922,6 +958,17 @@ public class Driver {
 
         System.out.println("");
         TestDriver.displayMessages(recipient_id);
+      }
+      else if (command.equals("threedegrees") || command.equals("10")) {
+        System.out.println("FUNCTION: threeDegrees()\n");
+
+        long f_id = TestDriver.inputUserID("Enter the ID of the first friend: ");
+        if (f_id == -1) { continue; }
+
+        long s_id = TestDriver.inputUserID("Enter the ID of the second friend: ");
+        if (s_id == -1) { continue; }
+
+        TestDriver.threeDegrees(f_id, s_id);
       }
 			else if (command.equals("topmessagers") || command.equals("11")) {
                 System.out.println("FUNCTION: topMessagers()\n");
