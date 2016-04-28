@@ -59,57 +59,57 @@ public class Driver {
         }
         createUser("Another User", "another@user.com", dob);
 		
-		//initiate friendship
-		System.out.println("Initiate friendship between user 0 and user 1\n");
-		initiateFriendship(0, 1);
+        //initiate friendship
+        System.out.println("Initiate friendship between user 0 and user 1\n");
+        initiateFriendship(0, 1);
 		
-		//establishFriendship
-		System.out.println("Establish friendship between user 0 and user 1\n");
-		establishFriendship(0,1);
+        //establishFriendship
+        System.out.println("Establish friendship between user 0 and user 1\n");
+        establishFriendship(0,1);
 		
-		//display friends
-		System.out.println("Display friends of user 0\n");
-		displayFriends(0);
+        //display friends
+        System.out.println("Display friends of user 0\n");
+        displayFriends(0);
 		
-		//create group
-		System.out.println("Create a test group of enrollment limit 1\n");
-		createGroup("Test Group", "This group is for testing purposes", 1);
+        //create group
+        System.out.println("Create a test group of enrollment limit 1\n");
+        createGroup("Test Group", "This group is for testing purposes", 1);
 		
-		//add to group
-		System.out.println("Add user 0 to test group\n");
-		addToGroup(0,0);
-		System.out.println("Add user 1 to test group\n");
-		addToGroup(0,1);
+        //add to group
+        System.out.println("Add user 0 to test group\n");
+        addToGroup(0,0);
+        System.out.println("Add user 1 to test group\n");
+        addToGroup(0,1);
 		
-		//send message
-		System.out.println("Send a test message from user 0 to user 1\n");
-		sendMessageToUser("Test message", "This message is a test", 1, 0);
+        //send message
+        System.out.println("Send a test message from user 0 to user 1\n");
+        sendMessageToUser("Test message", "This message is a test", 1, 0);
 		
-		//display messages
-		System.out.println("Display the messages of user 1\n");
-		displayMessages(1);
+        //display messages
+        System.out.println("Display the messages of user 1\n");
+        displayMessages(1);
 		
-		//search for user
-		System.out.println("Search for the string \"Test User another@user.com\"\n");
-		searchForUser("Test User another@user.com");
+        //search for user
+        System.out.println("Search for the string \"Test User another@user.com\"\n");
+        searchForUser("Test User another@user.com");
 		
-		//three connections
+       //three connections
 		
-		//show top messagers
-		System.out.println("Get top 5 messagers in the last 6 months\n");
-		topMessagers(6,5);
+        //show top messagers
+        System.out.println("Get top 5 messagers in the last 6 months\n");
+        topMessagers(6,5);
 		
-		//drop user
-		System.out.println("Drop user 0\n");
-		dropUser(0);
+        //drop user
+        System.out.println("Drop user 0\n");
+        dropUser(0);
 		
-		//list users
-		System.out.println("List all users\n");
-		listUsers();
+        //list users
+        System.out.println("List all users\n");
+        listUsers();
 		
-		//list friendships
-		System.out.println("List all friendships\n");
-		listFriendships();
+        //list friendships
+        System.out.println("List all friendships\n");
+        listFriendships();
     }
 
     public void createUser(String name, String email, Date dob) {
