@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
