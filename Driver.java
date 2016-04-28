@@ -489,7 +489,7 @@ public class Driver {
       }
     }
 
-    public void threeDegrees(long first, long second) {
+   /* public void threeDegrees(long first, long second) {
       query = "SELECT * FROM FS_User WHERE (user_id IN (SELECT friend_receiver FROM Friendship WHERE friend_initiator = ? AND established = 1) OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1)) AND (user_id IN (SELECT friend_receiver FROM Friendship  WHERE friend_initiator = ? AND established = 1) OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1))";
       String query_user = "SELECT * FROM FS_User WHERE user_id = ?";
 
@@ -522,7 +522,112 @@ public class Driver {
       catch (SQLException e) {
         System.out.println("threeDegrees(): SQLException: " + e.toString());
       }
-    }
+    }*/
+	
+	public void threeDegrees(long first, long second) {
+	      String query = "SELECT user_id FROM FS_User WHERE (user_id IN (SELECT friend_receiver FROM Friendship WHERE friend_initiator = ? AND established = 1) " +
+	                           "OR user_id IN (SELECT friend_initiator FROM Friendship WHERE friend_receiver = ? AND established = 1))";
+	      String query_user = "SELECT * FROM FS_User WHERE user_id = ?";
+
+	      try {
+	        PreparedStatement prep_statement_f = connection.prepareStatement(query_user);
+	        prep_statement_f.setLong(1, first);
+	        ResultSet result_f = prep_statement_f.executeQuery();
+	        result_f.next();
+	        String name_f = result_f.getString("name");
+
+	        PreparedStatement prep_statement_s = connection.prepareStatement(query_user);
+	        prep_statement_s.setLong(1, second);
+	        ResultSet result_s = prep_statement_s.executeQuery();
+	        result_s.next();
+	        String name_s = result_s.getString("name");
+
+	       PreparedStatement prep_statement_first = connection.prepareStatement(query);
+	        prep_statement_first.setLong(1, first);
+	        prep_statement_first.setLong(2, first);
+	       
+	        //Check to see if direct friends
+	        ResultSet result_set_first = prep_statement_first.executeQuery();
+			ArrayList <Long> firstFriends= new ArrayList<Long>();
+	        while (result_set_first.next()) {
+	          firstFriends.add(result_set_first.getLong("user_id"));
+	        }
+			result_set_first.close();
+			
+			if(firstFriends.contains(second)){
+				System.out.println("" + name_f + " - " + name_s + "\n");
+				return;
+			}
+			
+			//Check to see if they share a mutual friend
+			PreparedStatement prep_statement_second = connection.prepareStatement(query);
+	        prep_statement_second.setLong(1, second);
+	        prep_statement_second.setLong(2, second);
+	       
+
+	        ResultSet result_set_second = prep_statement_second.executeQuery();
+			ArrayList <Long> secondFriends= new ArrayList<Long>();
+	        while (result_set_second.next()) {
+	          secondFriends.add(result_set_second.getLong("user_id"));
+	        }
+	        result_set_second.close();
+	        
+	        for(int i = 0; i < secondFriends.size(); i++){
+	        	if(firstFriends.contains(secondFriends.get(i))){
+	        		PreparedStatement prep_statement_mutual = connection.prepareStatement(query_user);
+	    	        prep_statement_mutual.setLong(1, secondFriends.get(i));
+	    	        ResultSet result_mutual = prep_statement_s.executeQuery();
+	    	        result_mutual.next();
+	    	        String name_mutual = result_mutual.getString("name");
+	    	        result_mutual.close();
+					System.out.println("" + name_f + " - " + name_mutual + " - "+ name_s + "\n");
+					return;
+				}
+	        }
+	        
+	        //Check to see if one of each of their friends are friends (3 hops or links)
+	        for(int i = 0; i < firstFriends.size(); i++){
+	        	PreparedStatement prep_statement_temp = connection.prepareStatement(query);
+		        prep_statement_temp.setLong(1, firstFriends.get(i));
+		        prep_statement_temp.setLong(2, firstFriends.get(i));
+		       
+
+		        ResultSet result_set_temp = prep_statement_temp.executeQuery();
+				ArrayList <Long> tempFriends= new ArrayList<Long>();
+		        while (result_set_temp.next()) {
+		          tempFriends.add(result_set_temp.getLong("user_id"));
+		        }
+		        result_set_temp.close();
+		        
+		        for(int j = 0; j < secondFriends.size(); j++){
+		        	if(tempFriends.contains(secondFriends.get(j))){
+		        		PreparedStatement prep_statement_link1 = connection.prepareStatement(query_user);
+		    	        prep_statement_link1.setLong(1, firstFriends.get(i));
+		    	        ResultSet result_link1 = prep_statement_link1.executeQuery();
+		    	        result_link1.next();
+		    	        String name_link1 = result_link1.getString("name");
+		    	        result_link1.close();
+		    	        
+		        		PreparedStatement prep_statement_link2 = connection.prepareStatement(query_user);
+		    	        prep_statement_link2.setLong(1, secondFriends.get(j));
+		    	        ResultSet result_link2 = prep_statement_link2.executeQuery();
+		    	        result_link2.next();
+		    	        String name_link2 = result_link2.getString("name");
+		    	        result_link2.close();
+		    	        
+						System.out.println("" + name_f + " - " + name_link1 + " - " + name_link2 + " - "+ name_s + "\n");
+						return;
+					}
+		        }
+	        }
+	        
+	        System.out.println("No connection of 3 degrees or less between users\n");
+	      }
+	      catch (SQLException e) {
+	        System.out.println("threeDegrees(): SQLException: " + e.toString());
+	      }
+	}
+
 
 
     /***** HELPER FUNCTIONS *****/
